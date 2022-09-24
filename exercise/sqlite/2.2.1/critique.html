@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Software Resurrection of SQLite-2.2.1 (2002)</title>
+    <meta name="description" content="Software resurrection">
+    <meta name="viewport" content="width=device-width,
+                                   initial-scale=1, user-scalable=1">
+    <link rel="stylesheet" type="text/css" href="../../../sr.css">
+  </head>
+
+  <body>
+    <h1>Software Resurrection of SQLite-2.2.1 <br> (released in Jan. 2002)</h1>
+
+    <section id="toc">
+      <ol>
+        <li><a href="index.html">Introduction</a></li>
+        <li><a href="compile.html">Compile</a></li>
+        <li><a href="test.html">Test</a></li>
+        <li>Critique</li>
+      </ol>
+    </section>
+
+    <section id="sqlite:2.2.1:Section:Critique">
+      <h2>4. Critique</h2>
+
+      <p>We compiled and tested a version of the SQLite database
+        engine that was released in the year 2002 (i.e. more than 20
+        years ago). We encountered several issues during this
+        exercise. Developing a fix for these issues provided valuable
+        insight into the factors that contribute to intelligibility
+        and maintainability of a program code and its
+        documentation. To reflect of these experiences, we write
+        a <a href="https://www.oxfordlearnersdictionaries.com/definition/english/critique_1?q=critique">critique</a>
+        for the sqlite-2.2.1 release in the spirit similar
+        to <a href="https://en.wikipedia.org/wiki/Literary_criticism">literary
+          criticism</a> where is purpose is not negative but the pursuit
+        has higher goals of studying, evaluating, interpreting a
+        literary piece like poem, story, essay, etc. In a similar
+        spirit, our goal with this critique is to study, evaluate and
+        interpret the program code and documentation associated with
+        sqlite-2.2.1 which was released more than 20 years ago.</p>
+
+      <h3 id="sqlite:2.2.1:Section:Critique:Section-4.1">4.1 Change is the only constant in a software.</h3>
+      <blockquote>
+        Everything changes and nothing stands still.
+        <span class="quote_source">Heraclitus (a Greek philosopher)</span>
+      </blockquote>
+
+      <p>A software tool lives and thrives in an ecosystem created by
+        hardware (e.g. CPU, memory, etc.), operating system and dependent
+        software libraries. This ecosystem is continually changing in order to
+        address the requirements of the changing world. Therefore, change is
+        the only constant also in the life of a software. It is wiser to
+        accept and embrace the fact that changes to a software will be
+        necessary as it moves forward in time.</p>
+
+      <p>A class of updates in a software that will prevent normal operation of
+        other software tools or services that depends on the software is
+        called a <i>breaking change</i>. While nobody wants to commit such
+        breaking changes, they are sometimes essential. The
+        <a href="compile.html#sqlite:2.2.1:Compile:Issue-Section-2.1">Issue
+          2.1</a> has revealed that it is important to have flags or
+        markers that caution the users of such breaking changes at the
+        point of usage. The GCC compiler developers have wisely chosen
+        to include a <code>varargs.h</code> file in all GCC compiler
+        distributions -- since 2004 -- which produces an informative
+        error message when the compiler attempts to use the unsupported
+        <code>varargs.h</code> header file. Such wise decisions has and
+        will help many software maintainers in the future.</p>
+
+      <h4>File: /usr/lib/gcc/.../include/varargs.h</h4>
+      <pre class="code">
+#ifndef _VARARGS_H
+#define _VARARGS_H
+
+#error "GCC no longer implements &lt;varargs.h&gt;."
+#error "Revise your code to use &lt;stdarg.h&gt;."
+
+#endif
+      </pre>
+
+      <p>Posting critical information at the point of usage is an important
+        construct for introducing a breaking change. In the case of compilers,
+        this involves showing an informative error message when a user tries
+        to access an unsupported feature. Further details about a breaking
+        change can also be disseminated through other forms of communication
+        like mailing list, software release document, etc. For example, the
+        GCC compiler release document contains a clear and concise notice
+        about this breaking change.</p>
+      <blockquote>
+        GCC no longer ships <code>&lt;varargs.h&gt;</code>. Use
+        <code>&lt;stdarg.h&gt;</code> instead.
+        <span class="quote_source"><a href="https://gcc.gnu.org/gcc-3.4/changes.html">GCC
+        3.4 Release Series</a>
+        </span>
+      </blockquote>
+
+      <p>The developers of the Tcl library could not provide information about
+        a breaking change at the point of usage. To find a fix for
+        <a href="test.html#sqlite:2.2.1:Test:Issue-Section-3.1">Issue
+        3.1</a>, a maintainer has to explore the software
+        documentation. A more intelligible compiler error message suggesting a
+        corrective action would have been more useful. For example, a software
+        trying to access the <code>result</code> field of the <code>Tcl_Interp</code>
+        data structure should be informed with an error message that this
+        feature is no longer available without defining the macro
+        <code>USE_INTERP_RESULT</code>. The GCC compiler permits, for example,
+        the <code>deprecated</code> attribute for a function to show a warning if
+        the an unsupported function gets used. However, such a feature is not
+        available for data member access and is the reason, most likely, why
+        such informative warnings were not generated when the <code>result</code>
+        field of the <code>Tcl_Interp</code> data structure was accessed.</p>
+
+    <h3 id="sqlite:2.2.1:Critique:Section-4.2">4.2 To depend or not to depend, is a profound question that the wise can answer.</h3>
+      <p>The SQLite developers chose to rely on a non-standard feature
+      (i.e. <code>vararg.h</code>) provided by the compilers of their
+      time (i.e. year
+      2002). The <a href="compile.html#sqlite:2.2.1:Compile:Issue-Section:2.1">Issue
+      2.1</a> revealed that dependence on non-standard features makes
+      the software vulnerable to changes in ecosystem thereby
+      increasing maintenance costs.</p>
+
+      <p><a href="test.html#sqlite:2.2.1:Test:Issue-Section-3.1">Issue
+      3.1</a> revealed another fact about software dependencies; if
+      software A depends on a software library B then it implies that
+      A has accepted that its fate is tied with the fate of B. The
+      SQLite software uses the TCL library to implement its test
+      suite. One can understand the benefit of this dependence; it
+      allows the SQLite developers to easily write tests in the Tcl
+      language which is more concise, clear and easier to
+      maintain. The cost of such dependence is often overshadowed by
+      the benefits. This dependency required the SQLite software to
+      act whenever the Tcl library introduces any breaking
+      changes.</p>
+
+      <p>"To depend or not to depend is the question my dear
+      developers", would have asked Shakespeare if he were reflecting
+      on the pros and cons of software dependencies. All dependencies
+      have a cost and understanding the cost is the first step in
+      taking a wise decision on whether to depend on a third party
+      library or to develop your own functionality. A wise developer
+      will look at the benefits and costs of a software dependency
+      with certain degree of impartiality in order to truly evaluate
+      the impact of such dependencies.</p>
+
+      <h3 id="sqlite:2.2.1:Critique:Section-4.3">4.3 Unitary (or atomic) revisions to a version control system
+        are more useful.</h3>
+      <p>Software developers often use a Version Control System (VCS) to
+        keep a historical record of changes (or, revisions) being made to a
+        software. Such historical record of revisions not only helps
+        understand the growth of a software and its structure but also allows
+        changes to be removed with surgical precision when the software
+        behaves in undesirable ways. It is easier to understand and reason
+        about a revision that introduces only one conceptual change (e.g. a
+        feature, a bug fix, a new test case, etc.) in a software. Such
+        revisions can be said to be unitary (or atomic) as they reflect a unit
+        of change in the software.</p>
+
+      <p>The value of unitary revisions were realised while fixing the
+        <a href="compile.html#sqlite:2.2.1:Compile:Issue-Section-2.2">Issue
+          2.2</a>. The <code>getline()</code> identifier name conflict with the
+        standard library was fixed as
+        a <a href="https://sqlite.org/src/vpatch?from=93a2c961b17d2459&to=558969ee8697180c">single
+          revision</a> in the version control history of the SQLite. This
+        revision contained relevant keywords (e.g. <code>getline</code>) in the
+        revision log message that made it easier to locate. Such a unitary
+        revision was not available
+        for <a href="compile.html#sqlite-2.2.1:Compile:Issue-Section-2.1">Issue
+          2.1</a> whose fix was more difficult to develop as the fix required
+        manually selecting code updates from one of
+        the <a href="https://www.sqlite.org/src/info/590f963b6599e4e2">future
+          revisions</a>. Therefore, unitary (or atomic) revisions with a
+        revision log containing all the relevant keywords are useful. When
+        deciding about the keywords relevant for a revision, it helps to think
+        about a learner who is allowed to search the revision log history
+        using only one or two keywords.</p>
+
+      <h3 id="sqlite:2.2.1:Critique:Section-4.4">4.4 Global Identifier Names
+        Should be both Unique and Intelligible</h3>
+      <p>The developers of sqlite-2002 came up with the <code>getline()</code>
+        method name well before the method was defined in the standard library
+        through the <code><stdio.h></code> header file. They fixed this name
+        conflict by renaming the method to <code>local_getline()</code> which not
+        only avoided conflict with the <code>getline()</code> method in the
+        standard library but also avoided any future conflicts with other
+        software. This was a wise decision because the updated method name has
+        survived more than 20 years of change in compilers and standard
+        libraries.</p>
+
+      <p>In some programming languages, like the C programming language, the
+        identifier names (e.g. function names, variable names, etc.) are
+        stored in either global or local scope. Names stored in the global
+        scope (e.g. function names such as <code>getline()</code>) are accessible
+        to all parts of the program and therefore have greater chance of
+        conflicting with other parts of the software (e.g. standard
+        library). Identifiers in the local scope (e.g. variable names defined
+        within a function) are only accessible in that local scope and
+        therefore has smaller chance of conflict with other identifiers
+        defined in that scope. Here is an example, taken from the SQLite code,
+        showing identifiers in both global and local scope.</p>
+
+      <h4>File: sqlite/src/shell.c</h4>
+      <pre class="code">
+static char *getline(char *zPrompt, FILE *in){
+  char *zLine;
+  int nLine;
+  ...
+}
+      </pre>
+
+      <p>In the above code snippet, the function name <code>getline()</code> is
+        stored in the global scope and therefore it can be invoked from any
+        part of the program including the local scope of any other
+        function. On the other hand, the variable <code>zPrompt</code>,
+        <code>in</code>, <code>zLine</code>, <code>nLine</code> are
+        stored in the local scope of the <code>getline()</code> function and
+        therefore these variables are only accessible from within
+        the <code>getline()</code> function.</p>
+
+      <figure>
+        <img src="img/intelligible-and-unique-global-identifiers.png">
+        <figcaption>Identifier names (e.g. function name, variable name, etc.)
+          in the global scope should be both unique and intelligible. Only
+          unique or only intelligible identifier names are less
+          useful.</figcaption>
+      </figure>
+
+      <p>Programmers have to deal with the following two conflicting
+        requirements when crafting the identifier names that have to live in
+        the global scope.</p>
+
+      <ul>
+        <li><i>Uniqueness</i> : The identifier names must to be unique so
+          that it does not conflict with identifiers that are currently
+          defined and the identifiers that will get defined in the future in
+          other parts of the software (e.g. standard library, dependent
+          libraries, etc.). So the challenge for the programmer is to think of
+          an identifier name that cannot be possibly thought by anyone else.</li>
+        <li><i>Intelligibility</i> : The identifier names should be
+          intelligible in order to convey the purpose of that identifier to
+          the reader. The more informative an identifier name is, the more
+          useful it is to the reader.</li>
+      </ul>
+
+
+      <p>If one chooses a fairly unique name (e.g. f531e2ca26a5) then it is
+        unlikely that this identifier name will ever conflict with any other
+        identifiers. However, such identifier names will not be intelligible
+        to the readers as it does not convey any meaning. On the other hand,
+        one can chose a highly intelligible identifier name
+        (e.g. <code>getline()</code>) that fully conveys the purpose of the
+        method. However, such an intelligible name would also invite conflict
+        as it is highly likely that others will also want to use such an
+        intelligible name for a function that has a similar
+        purpose. Therefore, one has to chose an identifier name that lives in
+        the global scope by carefully balancing the uniqueness and
+        intelligibility requirements. The developers of SQLite chose such a
+        balance by adding the prefix <code>local</code> to the method name.</p>
+
+      <p>Many programming languages have introduced the concept of namespace to
+        compartmentalise global identifier names into buckets (or, namespace)
+        such that these identifiers can only be accessed using the name of the
+        bucket. For example, in the C++ programming language the
+        <code>getline()</code> method defined by the standard library would be
+        placed in the std namespace and be accessed using
+        <code>std::getline()</code> identifier name. The getline() function
+        defined by the SQLite database engine would be placed in the sqlite
+        namespace, for example, and would be accessed using
+        <code>sqlite::getline()</code> identifier name. One could argue that this
+        is similar to the practice of adding a prefix (or suffix) to an
+        identifier name in order to avoid conflicts. This is a valid
+        argument. However, a feature provided by the compiler makes the
+        concept of namespace more useful in reducing conflict and improving
+        intelligibility. Namespaces have a scope and if an identifier is used
+        within a namespace, then one can remove namespace name prefix from the
+        identifier name. The default compiler behaviour is to assume that all
+        identifier names without the namespace prefix correspond to the
+        current namespace. This feature helps to improve intelligibility while
+        maintaining uniqueness. However, the reader is required to be aware of
+        the current namespace in order to correctly resolve an identifier
+        name.</p>
+
+
+      <h3 id="sqlite:2.2.1:Critique:Section-4.5">4.5 Tests build trust</h3>
+      <p>The SQLite database engine was ready to use after the successful
+        compilation of the sqlite-2002 as described in
+        <a href="compile.html#sqlite:2.2.1:Section:Compile">Compile
+          section</a>. One could create some tables, insert some sample
+        data, search for an entry and delete those entries to confirm
+        that the database engine is functioning properly even after 20
+        years of its release. While these mock tests allow verification
+        of the basic functionality of the software, it is not sufficient
+        to build trust in the software. In other words, the ad hoc and
+        mock tests cannot convince someone to use this software for
+        storing and managing critical information like financial or
+        medical data. One requires more stronger guarantees which can
+        only be provided by automated and self contained tests that can
+        be run by the users in their own machines. The developers of the
+        sqlite-2002 are best placed to build such automated tests
+        because they can reasonably be expected to quantify the desired
+        behaviour of the software. Such suite of software tests are
+        essential to build trust between the user and the software. The
+        sqlite-2002 software contains such a self contained suite of
+        tests and therefore allows its users to build such a trust even
+        after 20 years of its release.</p>
+
+      <h3 id="sqlite:2.2.1:Critique:Section-4.6">4.6 Tests define the
+        expected behaviour of a software.</h3>
+      <p>Successful compilation of a 20 year old software (i.e. sqlite-2002) on
+        a modern platform brought happiness and a sense of
+        achievement. However, these feelings were quickly overshadowed by
+        doubts as it became clear that the sqlite-2002 software was not
+        designed to run on future platforms; the developers of SQLite could
+        not be foreseen how the hardware and software would change in 20
+        years. Therefore, although the software compiled successfully in a
+        modern platform, it was not known if the software can function in the
+        way that its developers had expected during its released in the year
+        2002. Is it possible to concretely define the behaviour of a software
+        as it was desired in the year 2002?</p>
+
+      <p>The sqlite-2002 documentation states that this version of
+        sqlite, "implements a large subset of SQL92." and allows
+        "atomic commit and rollback protect data integrity". It is
+        possible to prepare some SQL query statements based on the
+        SQL92 standard and prepare some SQL tables to test atomic
+        commits. However, will these be sufficient to confirm that the
+        software is truly behaving in the way it was designed to
+        behave before its release in the year 2002? The developers of
+        sqlite-2002 were best placed to know the desired and expected
+        behaviour of this version of SQLite. One could write hundreds
+        of pages of documents or use formal software verification
+        methods to describe the expected behaviour of a software. The
+        software resurrection exercise has highlighted the role of
+        automated and self-contained tests in allowing one to quickly
+        and easily verify the functionality of a software. These tests
+        not only verify functionality of a software on a new platform
+        but also act as a concrete specification of the correct
+        behaviour of a software. Such tests are also useful for
+        developing an understanding of the input and output
+        characteristics of a software.</p>
+
+
+      <h3 id="sqlite:2.2.1:Critique:Section-4.7">4.7 Who tests the
+        Test?</h3>
+      <blockquote>
+        But who will guard the guardians themselves?
+        <span class="quote_source">Juvenal (<a href="https://en.wikiquote.org/wiki/Juvenal">Satire VI</a>)</span>
+      </blockquote>
+
+      <p>An automated and self contained test suite is a program code
+        that has been designed to test a software. The test suite invokes
+        various features of the software with a set of test inputs and
+        compares it against a set of corresponding expected outputs. If there
+        is a mismatch, the test suite shows a failure message that informs
+        about an unexpected behaviour in the software. The testing process
+        relies on the assumption that the test suite is operating
+        correctly.</p>
+
+      <p>The sqlite-2002 test suite crashed with a SEGFAULT error while running
+        the <code>btree-1.1</code> test case. An investigation revealed the test
+        suite architecture as shown in figure below. The test cases (e.g.
+        <code>btree-1.1</code>) in sqlite-2002 are defined using the Tcl
+        programming language (\eg <code>test/btree.test</code>). The core SQLite
+        database engine is defined using the C programming language (e.g.
+        <code>src/btree.c</code>). A test driver layer contains a set of functions
+        (\eg <code>btree_open</code> defined in <code>src/test{1,2,3}.c</code>)
+        that allows the Tcl based test specifications to access functionality
+        of the core SQLite database
+        engine. The figure shown below illustrates the control
+        and data flow for the test case <code>btree-1.1</code> whose purpose is to
+        verify the sqlite engine's ability to create a new database and
+        represent it using a btree data structure stored in a disk file. The
+        coordination between the test specification code and the test driver
+        layer relies on correctly exchanging the pointer address of the
+        database. An arduous and often frustrating debugging process revealed
+        that this exchange of pointer address was failing because the test
+        driver layer assumed that memory addresses were 32 bits long. Such an
+        assumption broke most of the test code because the driver layer
+        wrongly translated 64 bit pointer addresses (e.g.
+        <code>0x5555555e3db0</code>) to 32 bit pointer addresses (e.g.
+        <code>0x555e3db0</code>) by dropping the higher 32 bits portion of the
+        address. This resulted in the segmentation fault error.</p>
+
+      <figure>
+        <img src="img/test-distance.png">
+        <figcaption>Illustration of control and data flow for test
+          executions in sqlite-2002. The test specifications are defined in
+          the Tcl scripting language. The sqlite core database engine uses
+          the C programming language. A driver layer exposes the
+          functionality of the sqlite core database engine library which
+          exposes different functionality of the core sqlite database engine
+          as Tcl commands.</figcaption>
+      </figure>
+
+      <p>The software resurrection exercise on sqlite-2002 has shown
+        that if a test suite has complex logic and involves
+        substantial program code then the test suite merits a testing
+        process for itself to ensure that the test code does not have
+        any flaws. This leads to a recursive testing dependency in
+        which a test suite a test for itself in order to assure that
+        the test suite is functioning correctly. Such a requirement
+        can be avoided by a test suite that is so simple that it does
+        not demand a test for itself. For example, a test suite which
+        requires an elaborate setup and complex exchanges of data
+        between the test suite and the software is highly likely to
+        fail in its duty of reliably testing the software. On the
+        other hand, a test suite that simply instantiates an object
+        and triggers a method of the object is less likely to
+        fail. The test control and data flow process shown in figure
+        above must have its merits and therefore was chosen by the
+        sqlite-2002 developers. However, the issues encountered while
+        testing the sqlite-2002 on a modern platform did highlight the
+        need for tests that have minimal setup and simple logic. Only
+        such simple test suites are capable of providing assurances
+        that any failure in the testing process can be solely
+        attributed to the software that is being tested and does not
+        correspond to an issue caused by the test code itself.</p>
+
+      <figure>
+        <img src="img/who-tests-the-Test-dilemma.png">
+        <figcaption>If the program code for testing a software is complex, then
+          it demands a test for itself. A test suite is useful only when it
+          is simple to operate and therefore does not merit a test
+          for itself.</figcaption>
+      </figure>
+
+
+      <h3 id="sqlite:2.2.1:Critique:Section-4.8">4.8 SQLite-2002 is an
+        intelligible and maintainable software</h3>
+      <p>The SQLite database engine that was released 20 years ago can
+        be compiled in a modern hardware and software platform. It also
+        delivers all the features included in the original software release as
+        evidenced by successful execution of the regression tests. The program
+        code and regression tests required corrective software maintenance in
+        order to address the changes in the hardware and software
+        libraries. These maintenance activities could be performed by a modern
+        day developer because the program code is well documented. A
+        <code>README</code> text file provides an inviting introduction to the
+        software. Every function definition in the source code includes a
+        clear and concise description of its purpose. The user defined data
+        types are intelligible because of their identifier names as well as
+        the comments accompanying them. The software's architecture and
+        purpose of its various components are also well documented in a set of
+        self contained and static and offline HTML files that are generated by
+        the autoconf's <code>make doc</code> command. These documents and
+        comments, written 20 years ago, communicates to a modern day developer
+        with remarkable effectiveness and clarity. The sqlite-2002 software is
+        therefore an intelligible and maintainable software that is equally
+        valuable for learning some of the software engineering principles.</p>
+    </section>
+
+    <section>
+      <h2 id="sqlite:2.2.1:Critique:writing-critique">Writing Critique of a Resurrected Software</h2>
+      <p>The issues encountered during compilation and testing
+      activities of the software resurrection exercise provides a
+      thread of investigation around which one can write a critique. I
+      have found the following thought experiment helpful for writing
+      the critique of a historical release of the SQLite software.</p>
+
+      <p>I imagined that I am writing an email
+        to <a href="https://www.sqlite.org/src/timeline?u=drh&c=2002-01-09">drh</a>
+        that gets delivered soon after the sqlite-2.2.1 version is
+        released. This email will be sent from the future and gets
+        delivered
+        to <a href="https://www.sqlite.org/src/timeline?u=drh&c=2002-01-09">drh</a>
+        right after he pushes the sqlite-2.2.1 release to a FTP server
+        as illustrated below.</p>
+
+      <figure>
+        <img src="img/sqlite-2.2.1-release-critique-email.png">
+        <figcaption>As <a href="https://www.sqlite.org/src/timeline?u=drh&c=2002-01-09">drh</a>
+          released sqlite version 2.2.1 on 9th January 2002 in a
+          parallel universe separate from ours, he received an email
+          from the future. Will he retract his release to reflect
+          about the points raised in the email? Will the release date
+          of 2.2.1 be pushed into the future? Moreover, what will
+          sqlite look like after 20 years in this parallel universe
+          that can receive emails from the future?</figcaption>
+      </figure>
+    </section>
+
+    <!--
+    <section>
+      <h2>Acknowledgements</h2>
+      <p>TODO</p>
+    </section>
+    -->
+
+    <footer>
+      <p>Copyright 2022 REDACTED-FOR-PEER-REVIEW, Last Updated: <a href="REDACTED-FOR-PEER-REVIEW">2022-Sep-14</a></p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Software Resurrection of SQLite-2.2.1 (2002)</title>
+    <meta name="description" content="Software resurrection">
+    <meta name="viewport" content="width=device-width,
+                                   initial-scale=1, user-scalable=1">
+    <link rel="stylesheet" type="text/css" href="../../../sr.css">
+  </head>
+
+  <body>
+    <h1>Software Resurrection of SQLite-2.2.1 <br> (released in Jan. 2002)</h1>
+
+    <section id="toc">
+      <ol>
+        <li><a href="index.html">Introduction</a></li>
+        <li><a href="compile.html">Compile</a>
+        </li>
+        <li>Test
+          <ol>
+            <li><a href="#sqlite:2.2.1:Test:Issue-Section-3.1">Issue 1</a>: Tcl library not found</li>
+            <li><a href="#sqlite:2.2.1:Test:Issue-Section-3.2">Issue 2</a>: Undefined variable resolved by extern qualifier</li>
+            <li><a href="#sqlite:2.2.1:Test:Issue-Section-3.3">Issue 3</a>: What does a failed test case imply?</li>
+          </ol>
+        </li>
+        <li><a href="critique.html">Critique</a></li>
+      </ol>
+    </section>
+
+    <section id="sqlite:2.2.1:Section:Test">
+      <h2>3. Test</h2>
+
+      <p>We have now compiled the sqlite-2002 (i.e. version 2.2.1)
+        version released in Jan. 2022 successfully in a modern
+        platform. The sqlite-2002 software was not designed to run on
+        future platforms; the developers of SQLite could not be
+        foreseen how the hardware and software would change in 20
+        years. Therefore, although the software has compiled
+        successfully in a modern platform, we do not still know if the
+        software can function in the way that its developers had
+        expected during its released in 2002. How can we ensure that
+        the software is behaving in the way it was desired in 2002?</p>
+
+      <p>The sqlite-2002 documentation states that this version of
+        sqlite, "implements a large subset of SQL92." and allows
+        "atomic commit and rollback protect data integrity". We could
+        prepare some SQL query statements based on <a target="_blank" href="https://en.wikipedia.org/wiki/SQL-92">SQL92</a> and
+        prepare some SQL tables to test atomic commits. However, will
+        we able to develop trust in this software based on such simple
+        mock tests?  What would it take to confirm that the software
+        is truly behaving in the way it was designed to behave before
+        its release in 2002? The developers of sqlite-2002 were best
+        placed to know the desired and expected behaviour of this
+        version of SQLite. We can develop a good level of trust if the
+        software passes all the tests that were prepared by the
+        developers. There is no other simple and quick way to develop
+        such a level of trust in this software.</p>
+
+      <p>How do we run the tests included with the sqlite-2002
+        source distribution? The
+        <a target="_blank"
+           href="https://www.sqlite.org/src/file?name=README&ci=61c38f3bfef430f3">README</a>
+        file contained in the sqlite-2002 source distribution was
+        sufficient to compile the source code in a Unix-like
+        platform. However, the README file does not contain
+        instructions about running the tests. So, we check if the
+        documentation that gets shipped with the sqlite-2002 source
+        can be compiled using the common <code>make doc</code>
+        command.</p>
+      <pre class="output">
+<span class="cmd">$ make doc</span>
+...
+tclsh ../sqlite/www/index.tcl `cat ../sqlite/VERSION` &gt;index.html
+tclsh ../sqlite/www/sqlite.tcl &gt;sqlite.html
+...
+tclsh ../sqlite/www/faq.tcl &gt;faq.html
+mkdir -p doc
+mv index.html sqlite.html changes.html lang.html opcode.html arch.html
+arch.png vdbe.html c_interface.html crosscompile.html mingw.html
+tclsqlite.html download.html speed.html faq.html doc
+      </pre>
+
+      <p>This command generates all the documentation in HTML format
+        which can be viewed in a web
+        browser. The <code>doc/index.html</code> is the entry point of
+        the documentation and a snippet of this file is shown in the
+        screenshot below.</p>
+      <figure>
+        <img title="Screenshot of the
+                    generated <code>doc/index.html</code> file from
+                    sqlite-2.2.1 source distribution."
+                    src="img/sqlite-2.2.1-doc-index-html.png">
+        <figcaption>Screenshot of the
+          generated <code>doc/index.html</code> file from sqlite-2.2.1
+          source distribution.</figcaption>
+      </figure>
+
+      <p>It is only in the generated document that we see that
+      regression tests can be executed using the <code>make
+      test</code> command which is still fairly a standard way to
+      execute tests. We expect to see a message like "All tests
+      passed". However, if that were the case, we would have less
+      learning opportunity. Let us see what learning opportunities
+      emerge as we engage with the tests included in the sqlite-2002
+      source distribution.</p>
+
+      <h3 id="sqlite:2.2.1:Test:Issue-Section-3.1">3.1 Tcl library not found</h3>
+      <p>As advised in the generated documentation, we execute the
+        regression tests using the <code>make test</code> command and
+        encounter our first issue with the test suite.</p>
+
+      <pre class="cmd">
+$ make test
+../sqlite/src/test1.c:19:10: <span class="err">fatal error</span>: tcl.h: No such file or directory
+   19 | #include "tcl.h"
+      |          ^~~~~~~
+compilation terminated.
+make: *** [Makefile:224: testfixture] Error 1
+      </pre>
+
+      <p>SQLite test suite depends on the
+        <a target="_blank"
+           href="http://www.tcl.tk/doc/howto/compile.html">Tcl</a>
+        library. At the time of
+        writing of this article,
+        <a href="https://sourceforge.net/projects/tcl/files/Tcl/">tcl-8.6.12</a>
+        is the most recent released version of
+        Tcl. We
+        <a href="http://www.tcl.tk/software/tcltk/download.html">download</a>
+        and
+        <a target="_blank"
+           href="http://www.tcl.tk/doc/howto/compile.html">compile</a>
+        tcl-8.6.12 with a hope that it will let us run the SQLite test
+        suite.</p>
+
+      <pre class="cmd">
+## Compile tcl-8.6.12 from source
+## Note: you can skip this step if your already have Tcl installed
+mkdir -p $HOME/sr/sqlite/2.2.1/deps/src
+cd $HOME/sr/sqlite/2.2.1/deps/src
+wget https://prdownloads.sourceforge.net/tcl/tcl8.6.12-src.tar.gz
+tar -zxvf tcl8.6.12-src.tar.gz
+cd tcl8.6.12/unix  # not standard, had to look into http://www.tcl.tk/doc/howto/compile.html
+./configure --prefix=$HOME/sr/sqlite/2.2.1/deps/ && make -j && make install
+
+## Re-compile sqlite-2.2.1 (with Tcl dependencies)
+cd $HOME/sr/sqlite/2.2.1/build
+rm *  # clear existing build files
+../sqlite/configure
+<span class="output">...
+checking for library containing Tcl_Init... no
+checking TCL header files... not specified: still searching...
+checking for tcl.h... no
+...</span>
+      </pre>
+
+      <p>The configure script cannot find the tcl-8.6.12 library even
+        after we use the <code>--includedir</code>
+        and <code>--libdir</code> flag. The <code>LDFLAGS</code>
+        and <code>CFLAGS</code> environment variables also do not
+        help. So, we manually edit the generated <code>Makefile</code>
+        and include the location of our version of compiled tcl
+        library.</p>
+      <pre class="cmd">
+## Update Makefile to get Tcl library from custom location
+sed -i '/TCL_FLAGS = -DNO_TCL=1/c\TCL_FLAGS = -I${HOME}/sr/sqlite/2.2.1/deps/include' Makefile
+sed -i '/LIBTCL =  -ldl -lm/c\LIBTCL = ${HOME}/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so -ldl -lm' Makefile
+      </pre>
+      <p>We try to recompile and rebuild the test as follows.</p>
+      <pre class="output">
+<span class="cmd">$ make -j && make test</span>
+...
+../sqlite/src/tclsqlite.c:622:36: <span class="err">error</span>: &apos;Tcl_Interp&apos; has no member named &apos;result&apos;
+  622 |       if( zInfo==0 ) zInfo = interp-&gt;result;
+      |                                    ^~
+make: *** [Makefile:226: testfixture] Error 1
+      </pre>
+
+      <p>How can we fix this issue?</p>
+
+      <details id="sqlite:2.2.1:Test:Issue-3.1:Details" class="issue">
+        <summary>Issue 3.1: missing Tcl dependency</summary>
+        <aside id="sqlite:2.2.1:Test:Issue-3.1:Tip">
+          <h4>Tip</h4>
+          <p>The compiler complains that the <code>result</code> member is missing in the <code>Tcl_Interp</code> structure. Did the Tcl library remove this member in the future releases?</p>
+        </aside>
+        <details id="sqlite:2.2.1:Test:Issue-3.1:Fix"
+                 class="issue_solution">
+          <summary>Solution to Issue 3.1</summary>
+          <p>The error message indicates that the Tcl library has introduced breaking
+            changes because of which the <code>result</code> field is not
+            available in the <code>Tcl_Interp</code> data structure. We
+            look into the <a target="_blank"
+                             href="https://www.tcl.tk/man/tcl/TclLib/Interp.html">Tcl_Interp</a>
+            API documentation which describes this breaking change and a
+            possible solution for legacy programs.</p>
+          <blockquote>
+            For legacy programs and extensions no longer being
+            maintained, compiles against the Tcl 8.6 header files are
+            only possible with the compiler directives
+            <pre class="output">
+#define USE_INTERP_RESULT
+#define USE_INTERP_ERRORLINE
+        </pre>
+            depending on which fields of the Tcl_Interp struct are
+            accessed.<br/>
+            <span class="quote_source">&mdash;<a target="_blank"
+                                                 href="https://www.tcl.tk/man/tcl/TclLib/Interp.html">Tcl_Interp</a>,
+              Tcl C API</span>
+          </blockquote>
+          <p>We update the <code>Makefile</code> to include the required
+            preprocessor directive to allow access to
+            the <code>result</code> field.</p>
+          <pre class="output">
+<span class="cmd">$ sed -i '/TCL_FLAGS = -I${HOME}\/sr\/sqlite\/2.2.1\/deps\/include/c\TCL_FLAGS = -I${HOME}\/sr\/sqlite\/2.2.1\/deps\/include -DUSE_INTERP_RESULT=1' Makefile</span>
+<span class="cmd">$ cat $HOME/sr/sqlite/2.2.1/build/Makefile</span>
+...
+TCL_FLAGS = -I${HOME}/sr/sqlite/2.2.1/deps/include -DUSE_INTERP_RESULT=1
+...
+          </pre>
+        </details>
+      </details>
+
+      <p>This fix lets the test suite to use the Tcl library. As we
+      will see in the next issue, this fix is not sufficient to
+        compile and run the tests.</p>
+
+      <h3 id="sqlite:2.2.1:Test:Issue-Section-3.2">3.2 Undefined variable resolved by<code>extern</code> qualifier</h3>
+      <p>We recompile the sqlite-2002 tests after fixing the issue with the
+      Tcl library and encounter our next issue.</p>
+      <pre class="cmd">
+$ cd $HOME/sr/sqlite/2.2.1/build && make -j && make test
+<span class="output">
+...
+/usr/bin/ld: sqlite/src/pager.h:69: multiple definition of &apos;pager_refinfo_enable&apos;
+collect2: error: ld returned 1 exit status
+make: *** [Makefile:224: testfixture] Error 1
+</span>
+
+$ grep -rnw &apos;pager_refinfo_enable&apos; $HOME/sr/sqlite/2.2.1/sqlite/src/
+<span class="output">
+src/pager.c:160:  int pager_refinfo_enable = 0;
+src/pager.c:163:    if( !pager_refinfo_enable ) return;
+src/pager.h:69:int pager_refinfo_enable;
+src/test3.c:837:  Tcl_LinkVar(interp, "pager_refinfo_enable", (char*)&pager_refinfo_enable,
+</span>
+      </pre>
+
+      <details id="sqlite:2.2.1:Test:Issue-3.2:Details" class="issue">
+        <summary>Issue 3.2: extern variables</summary>
+        <aside id="sqlite:2.2.1:Test:Issue-3.2:Tip">
+          <h4>Tip</h4>
+          <p>A search for the identifier <code>pager_refinfo_enable</code>
+            reveals that the variable is declared and defined
+            in <code>src/pager.c#160</code>. The same variable is also
+            only declared <code>src/pager.h#69</code>. What did the
+            developers intend to do here which the compiler is not
+            able to understand?</p>
+          <pre class="output">
+<span class="cmd">$ grep -rnw &apos;pager_refinfo_enable&apos; $HOME/sr/sqlite/2.2.1/sqlite/src/</span>
+src/pager.c:160:  int pager_refinfo_enable = 0;
+src/pager.c:163:    if( !pager_refinfo_enable ) return;
+src/pager.h:69:int pager_refinfo_enable;
+src/test3.c:837:  Tcl_LinkVar(interp, "pager_refinfo_enable", (char*)&pager_refinfo_enable,
+          </pre>
+        </aside>
+        <details id="sqlite:2.2.1:Test:Issue-3.2:Fix"
+                 class="issue_solution">
+          <summary>Solution to Issue 3.2</summary>
+          <p>The re-declaration of this
+            variable in <code>src/pager.h#69</code> shows that the
+            developers wanted to say to the compiler that this variable is
+            being used here but it has already been declared and defined
+            somewhere else. A compiler directive for such variables
+            is <code>extern</code>. This issue can be fixed by declaring the
+            concerned variable as <code>extern page_refinfo_enable</code>
+            in <code>src/pager.h#69</code> which helps the compiler resolve
+            the variable&apos;s definition and declaration
+            from <code>src/pager.c#160</code> This error did not show up in
+            the <a href="#sqlite:2.2.1:Build">Build</a> stage because
+            the <code>SQLITE_TEST</code> preprocessor directive did not get
+            defined because of missing Tcl dependency which is essential for
+            the sqlite test.</p>
+
+          <p>The issue can be fixed by declaring the variable
+          as <code>extern</code> in <code>src/pager.h#69</code> which
+          informs the compiler to search for its original declaration
+            and definition in some other source file.</p>
+          <pre class="cmd">
+cd $HOME/sr/sqlite/2.2.1/sqlite/src/
+sed -i '/int pager_refinfo_enable;/c\extern int pager_refinfo_enable;' pager.h
+cat pager.h
+<span class="output">...
+#ifdef SQLITE_TEST
+void sqlitepager_refdump(Pager*);
+extern int pager_refinfo_enable;
+#endif
+</span>
+          </pre>
+
+          <p>This fix is contained in a patch and can be applied to
+            the source as follows.</p>
+          <pre class="cmd">
+# Assumptions: Issue 2.1, 2.2 are already fixed
+cd $HOME/sr/sqlite/2.2.1/sqlite
+patch -p1 < $HOME/sr/sqlite/2.2.1/patches/3-extern.patch
+          </pre>
+
+          <p>The patching process is confirmed by the following
+            message.</p>
+          <pre class="output">
+patching file src/pager.h
+          </pre>
+        </details>
+      </details>
+
+      <p>This fix takes allows the tests to compile and run.</p>
+
+      <h3 id="sqlite:2.2.1:Test:Issue-Section-3.3">3.3 What does a failed test case imply?</h3>
+      <p>We are now ready to compile and run the tests. While many
+        initial test cases run successfully, the test
+        case <code>btree-1.5</code> fails with a <code>Segmentation
+        fault</code> (or <code>SEGFAULT</code>) error.</p>
+      <pre class="output">
+<span class="cmd">$ cd $HOME/sr/sqlite/2.2.1/build && make -j && make test</span>
+...
+creating sqlite
+./testfixture ../sqlite/test/quick.test
+bigrow-1.0... Ok
+bigrow-1.1... Ok
+bigrow-1.2... Ok
+bigrow-1.3... Ok
+...
+bigrow-5.3... Ok
+bigrow-5.4... Ok
+btree-1.1... Ok
+btree-1.1.1... Ok
+btree-1.2... Ok
+btree-1.3... Ok
+btree-1.4... Ok
+btree-1.4.1... Ok
+btree-1.5...make: *** [Makefile:232: test] <span class="err">Segmentation fault</span>
+      </pre>
+
+      <blockquote>
+        The debugging process for
+        the <a href="test.html#sqlite:2.2.1:Test:Issue-Section-3.3">Issue
+        3.3</a> was arduous and frustrating. If I had used the GNU gdb
+        debugger, it would have been simpler as shown in
+        the <a href="REDACTED-FOR-PEER-REVIEW">software
+        resurrection paper</a>
+        (<a href="REDACTED-FOR-PEER-REVIEW">pdf</a>).
+        <span class="quote_source">REDACTED-FOR-PEER-REVIEW (2022-09-15)
+      </blockquote>
+
+      <p><code><a href="https://en.wikipedia.org/wiki/Segmentation_fault"
+        target="_blank">SEGFAULT</a></code> errors are caused by
+        programs trying to access a memory location that is not
+        allowed to access. The program code that is
+        triggering <code>SEGFAULT</code> can be located using a
+        debugger&apos;s backtrace functionality which shows a detailed
+        history of the program instructions that led to
+        the <code>SEGFAULT</code> (e.g. the <code>backtrace</code> or
+        (<code>bt</code>) command of the <code>gdb</code>
+        debugger). Inspecting the output of the <code>make test</code>
+        command, we observe that tests are invoked by the following
+        command: <code>testfixture
+        ../sqlite/test/quick.test</code>. The <code>testfixture</code>
+        appears as an executable which takes an argument that
+        corresponds to a file containing all the test case
+        description. Let us find more about this file using
+        the <code>file</code> command.</p>
+
+      <pre class="cmd">
+$ cd $HOME/sr/sqlite/2.2.1/build
+$ gdb --args testfixture ../sqlite/test/quick.test
+<span class="output">not in executable format: file format not recognised</span>
+$ file ./testfixture
+<span class="output">./testfixture: POSIX shell script, ASCII text executable, with very long lines</span>
+      </pre>
+
+      <p>Contrary to our expectation, the <code>testfixtute</code> is
+      a shell script and therefore it is not possible to use
+      the <code>gdb</code> debugger to trace the source of
+      the <code>SEGFAULT</code> error. Since it is a plain text file,
+      we open it in a text editor which reveals that this script is
+      "just a wrapper for" another executable program
+        named <code>lt-testfixture</code>. The build folder does not
+      contain the <code>lt-testfixture</code> executable. Where could
+      it be located? The <code>find . -name lt-testfixture</code>
+      reveals that this file is located inside the
+      hidden <code>build/.libs</code> folder. After a second look at the
+      contents of <code>testfixture</code> script, it is clear that
+      this information could have been gleaned from
+      the <code>progdir</code> variable. In the first look, for some
+      reason, this failed to register.</p>
+      <pre class="output">
+<span class="cmd">$ cat $HOME/sr/sqlite/2.2.1/build/testfixture</span>
+...
+program=lt-'testfixture'
+progdir="$thisdir/.libs"
+...
+if test -f "$progdir/$program"; then
+    ...
+    exec $program ${1+"$@"}
+    ...
+else
+    # The program doesn&apos;t exist.
+    $echo "$0: error: $progdir/$program does not exist" 1&gt;&2
+    $echo "This script is just a wrapper for $program." 1&gt;&2
+    echo "See the libtool documentation for more information." 1&gt;&2
+    exit 1
+fi
+      </pre>
+      <p>Now we shift our attention to
+        the <code>.libs/lt-testfixture</code>. Using a combination
+        of <code>file</code> and <code>ldd</code> commands, we know that
+        this is an executable that is dynamically linked to the Tcl and
+        sqlite library. Therefore, this must be the main executable that
+        is responsible for running all the test cases defined
+        in <code>test/quick.test</code>.</p>
+      <pre class="output">
+$ file .libs/lt-testfixture
+.libs/lt-testfixture: ELF 64-bit LSB pie executable, x86-64
+...
+
+$ ldd ./libs/lt-testfixture
+...
+/home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+libsqlite.so.0 =&gt; /home/tlm/sr/sqlite/2.2.1/build/.libs/libsqlite.so.0
+libc.so.6 =&gt; /lib/x86_64-linux-gnu/libc.so.6
+...
+      </pre>
+      <p>There are two threads of investigation at this point. First
+        is to understand the functionality of <code>lt-testfixture</code>
+        by studying its source code. Second is to understand the test
+        cases specifications in <code>test/quick.test</code>.</p>
+
+      <p>What source code generates the <code>lt-testfixture</code>
+      executable file? The source folder does not contain any file
+      named <code>lt-testfixture.*</code>. The <code>Makefile</code>
+      also does not provide any clues to how this executable gets
+      generated. For now, we give up this line of inquiry as it does
+      not seem to leading anywhere.</p>
+      <pre class="cmd">
+$ cd $HOME/sr/sqlite/2.2.1/build/
+$ find . -iname '*lt-testfixture*'
+<span class="output">{output is empty}</span>
+$ find . -iname '*testfixture*'
+<span class="output">{output is empty}</span>
+$ grep -rnw 'lt-testfixture' .
+<span class="output">{output is empty}</span>
+$ grep -rnw 'testfixture' .
+<span class="output">{output is empty}</span>
+      </pre>
+
+      <p>We pursue the second line of inquiry by exploring the test
+        case specifications defined in <code>test/quick.test</code>
+        file. The contents of this file appears to be a program code but
+        the programming language does not look familiar. We use a
+        internet search engine with the following query "set rename proc
+        set foreach" and conclude that this code is written in the Tcl
+        programming language. Since, I was not familiar with the Tcl
+        language, it was not initially clear
+        that <code>test/quick.test</code> is written in the Tcl
+        language. In spite of unfamiliarity, the remarkable property of
+        the intelligible keywords chosen by the Tcl language ensured
+        that I could understand the computations defined in this file:
+        collect all test specification defined
+        in <code>test/*.test</code> and execute them using the Tcl
+        interpreter. Since, our test execution failed
+        at <code>btree-1.5</code>, we continue our investigation by
+        looking into the <code>test/btree.test</code>.</p>
+
+      <h4>File: <a href="https://www.sqlite.org/src/file?name=test/btree.test&ci=61c38f3bfef430f3">test/btree.test#47</a></h4>
+      <pre class="code">
+# 2001 September 15
+# ...
+# This file implements regression tests for SQLite library.  The
+# focus of this script is btree database backend
+...
+...
+...
+# Do an insert and verify that the database file grows in size.
+#
+do_test btree-1.4 {
+  set rc [catch {btree_begin_transaction $::b1} msg]
+  lappend rc $msg
+} {0 {}}
+do_test btree-1.4.1 {
+  lindex [btree_pager_stats $::b1] 1
+} {1}
+do_test btree-1.5 {
+  set rc [catch {btree_cursor $::b1 2 1} ::c1]
+  if {$rc} {lappend rc $::c1}
+  set rc
+} {0}
+...
+      </pre>
+
+      <p>Let us pause our investigation for a moment to enjoy the
+        intelligibility of this program code. The comment at the
+        beginning of the source file identifies the purpose of this
+        program code in a clear and concise way. It also conveys the
+        date when this program code was created which helps us
+        appreciate that this was written more than 20 years ago. I am
+        not familiar with the Tcl programming language yet I can
+        understand many aspects of this test code. First, I see a set
+        of <code>do_test</code> instructions which suggests that this
+        program is executing a set of tests. Second, we notice a set
+        of sequential (e.g. <code>btree-1.1, btree-1.2, btree-1.3,
+          btree-1.4</code>) and hierarchical (e.g. <code>btree-1.4.1</code>)
+        which implies, without any requiring any additional
+        qualifications, the following:</p>
+      <ul>
+        <li>they test the btree backend implementation in sqlite</li>
+        <li>a set of tests are sequentially executed</li>
+        <li>each test may have other nested tests which
+          potentially depend on the parent.</li>
+      </ul>
+
+      <p>Returning to our investigation, we realise that we still do
+        not know the following two details: (a) what computations are
+        carried out by when <code>do_test</code> gets invoked? and (b)
+        what computations are contained in these individual tests
+        like <code>btree-1.5</code>? First, let us find more details
+        about the <code>do_test</code> by listing all the occurrences
+        of this keyword in the source folder.</p>
+      <pre class="output">
+<span class="cmd">$ cd $HOME/sr/sqlite/2.2.1/sqlite/ && grep -rnw 'do_test' .</span>
+...
+./test/tester.tcl:62:# Invoke the do_test procedure to run a single test
+./test/tester.tcl:64:proc do_test {name cmd expected} {
+...
+      </pre>
+      <p>If we patiently scroll through all the results, we will see
+        that the <code>do_test</code> is a procedure (or function)
+        defined
+        in <code><a href="https://www.sqlite.org/src/file?name=test/tester.tcl&ci=61c38f3bfef430f3">test/tester.tcl</a></code>. Because
+        of the judicious choice of programming language keyword
+        (e.g. <code>proc</code>) and identifier names
+        (e.g. <code>name, cmd, expected</code>), we now know
+        that <code>do_test</code> is a procedure (or function) which
+        executes the command contained in <code>cmd</code> argument and
+        compares the <cmd>result</cmd> of running this command with
+        the <code>expected</code> outcome. If the result does not
+        match the expectation, the <code>do_test</code> procedure
+        prints an informative error message.</p>
+
+      <h4>File: <a href="https://www.sqlite.org/src/file?name=test/tester.tcl&ci=61c38f3bfef430f3">test/tester.tcl#62</a></h4>
+      <pre class="code">
+...
+# Invoke the do_test procedure to run a single test
+#
+proc do_test {name cmd expected} {
+  global argv nErr nTest skip_test
+  ...
+  if {[catch {uplevel #0 "$cmd;\n"} result]} {
+    puts "\nError: $result"
+    incr nErr
+    lappend ::failList $name
+    if {$nErr&gt;10} {puts "*** Giving up..."; finalize_testing}
+  } elseif {[string compare $result $expected]} {
+    puts "\nExpected: \[$expected\]\n     Got: \[$result\]"
+    incr nErr
+    lappend ::failList $name
+    if {$nErr&gt;10} {puts "*** Giving up..."; finalize_testing}
+  } else {
+    puts " Ok"
+  }
+}
+...
+      </pre>
+      <p>We now move to the second question of finding out the
+      computations carried out in individual tests like btree-1.5. We
+      now realise that the usage of
+      <code>do_test</code> in <code>test/btree.test</code> not only
+      invoked the tests but also named the individual tests and
+      defined the commands that constitutes a test. So,
+      the <code>btree-1.5</code> involves executing the following
+      instructions in the Tcl language,</p>
+      <pre class="output">
+do_test btree-1.5 {
+  set rc [catch {btree_cursor $::b1 2 1} ::c1]
+  if {$rc} {lappend rc $::c1}
+  set rc
+} {0}
+      </pre>
+      <p>where the expected output from this test
+        is <code>0</code>. Due to unfamiliarity with the Tcl language,
+        it is difficult to understand the instructions involved in
+        this test. So, we start with the following questions and refer
+        to the Tcl documentation to understand the purpose of these
+        keywords and find the answer to the following two
+        questions.</p>
+      <ol>
+        <li>What is btree_cursor?</li>
+        <li>What is the purpose of <code>$::b1</code> variable?</li>
+      </ol>
+
+      <p>To answer the first question, we use the <code>grep</code> command to learn
+        that <code>btree_cursor</code> is declared as a Tcl
+        command and defined as a C-language function
+        <code>src/test3.c</code></p>
+      <pre class="output">
+<span class="cmd">$ cd $HOME/sr/sqlite/2.2.1/sqlite/ && grep -rnw
+'btree_cursor' .</span>
+./src/test3.c:502:** Usage:   btree_cursor ID TABLENUM WRITEABLE
+./src/test3.c:506:static int btree_cursor(
+./src/test3.c:540:** Close a cursor opened using btree_cursor.
+./src/test3.c:827:  Tcl_CreateCommand(interp, "btree_cursor", btree_cursor, 0, 0);
+...
+          </pre>
+
+      <h4>File: sqlite-2.2.1/src/test3.c</h4>
+      <pre class="code">
+/*
+** Usage:   btree_cursor ID TABLENUM WRITEABLE
+**
+** Create a new cursor.  Return the ID for the cursor.
+*/
+static int btree_cursor(
+  void *NotUsed,
+  Tcl_Interp *interp,    /* The TCL interpreter that invoked this command */
+  int argc,              /* Number of arguments */
+  char **argv            /* Text of each argument */
+){
+  Btree *pBt;
+  int iTable;
+  BtCursor *pCur;
+  int rc;
+  int wrFlag;
+  char zBuf[30];
+
+  if( argc!=4 ){
+    ...
+    return TCL_ERROR;
+  }
+  if( Tcl_GetInt(interp, argv[1], (int*)&pBt) ) return TCL_ERROR;
+  if( Tcl_GetInt(interp, argv[2], &iTable) ) return TCL_ERROR;
+  if( Tcl_GetBoolean(interp, argv[3], &wrFlag) ) return TCL_ERROR;
+  rc = sqliteBtreeCursor(pBt, iTable, wrFlag, &pCur);
+  if( rc ){
+    Tcl_AppendResult(interp, errorName(rc), 0);
+    return TCL_ERROR;
+  }
+  sprintf(zBuf,"0x%x", (int)pCur);
+  Tcl_AppendResult(interp, zBuf, 0);
+  return SQLITE_OK;
+}
+          </pre>
+
+      <p>To answer the second question (i.e. the purpose
+        of <code>$::b1</code>), we use our prior knowledge which
+        informs that the <code>::</code> operator that allows access
+        to global variable in the C programming language. It is highly
+        likely that Tcl also has same interpretation of this
+        keyword. We use a search engine to find out the way to print
+        value of a variable. From
+        the <a href="https://www.tcl.tk/man/tcl8.7/TclCmd/puts.html">Tcl
+        documentation</a>, we learn that the <code>puts</code> command
+        can be used to print values of these variables. Therefore, we
+        update the <code>test/btree.test</code> file as follows to
+        print the value of these <code>$::b1 and
+        ::c1</code>variables.</p>
+      <h4>File: <a href="https://www.sqlite.org/src/file?name=test/btree.test&ci=61c38f3bfef430f3">test/btree.test</a></h4>
+      <pre class="code">
+...
+do_test btree-1.5 {
+  puts "DEBUG: Showing values of btree-1.5 variables"
+  puts "Value of b1={$::b1}"
+  set rc [catch {btree_cursor $::b1 2 1} ::c1]
+  puts "Value of rc={rc}"
+  if {$rc} {lappend rc $::c1}
+  set rc
+} {0}
+...
+      </pre>
+
+      <p>Now when we re-run the <code>make test</code> command to
+        run the regression test, we get the following surprising
+        result.</p>
+      <pre class="output">
+<span class="cmd">$ cd $HOME/sr/sqlite/2.2.1/build && make test</span>
+...
+btree-1.5...DEBUG: Showing values of btree-1.5 variables
+Value of b1={0x90908db0}
+make: *** [Makefile:232: test] Segmentation fault
+          </pre>
+      <p>There are two important things to note here. First is
+        that <code>b1</code> is indeed a global variable and that
+        it is storing some hexadecimal value as a string. Second,
+        we do not see the output of the form <code>Value of
+          rc=...</code> which implies that the SEGFAULT is being
+        caused by the <code>btree_cursor</code> command. What is
+        the purpose of <code>b1</code> global variable?
+        The <code>test/btree.test</code> shows that
+        the <code>b1</code> global variable is set by the btree-1.1
+        test case which involves opening a btree.</p>
+
+      <h4>File: <a href="https://www.sqlite.org/src/file?name=test/btree.test&ci=61c38f3bfef430f3">test/btree.test#24</a></h4>
+      <pre class="code">
+...
+do_test btree-1.1 {
+  file delete -force test1.bt
+  file delete -force test1.bt-journal
+  set rc [catch {btree_open test1.bt} ::b1]
+} {0}
+...
+      </pre>
+      <p>Let us see what is returned by the <code>btree_open</code>
+        method defined in <code>src/test3.c</code>. </p>
+
+      <h4>File: src/test3.c#51</h4>
+      <pre class="code">
+/*
+** Usage:   btree_open FILENAME
+**
+** Open a new database
+*/
+static int btree_open(
+  void *NotUsed,
+  Tcl_Interp *interp,    /* The TCL interpreter that invoked this command */
+  int argc,              /* Number of arguments */
+  char **argv            /* Text of each argument */
+){
+  Btree *pBt;
+  int rc;
+  char zBuf[100];
+  if( argc!=2 ){
+    ...
+    return TCL_ERROR;
+  }
+  rc = sqliteBtreeOpen(argv[1], 0666, 10, &pBt);
+  if( rc!=SQLITE_OK ){
+    Tcl_AppendResult(interp, errorName(rc), 0);
+    return TCL_ERROR;
+  }
+  sprintf(zBuf,"0x%x",(int)pBt);
+  Tcl_AppendResult(interp, zBuf, 0);
+  return TCL_OK;
+}
+      </pre>
+      <p>This reveals that the <code>btree_open</code> command creates
+      a new database and returns the pointer address of the database
+      as a string. The string representation of the pointer address is
+      created using the <code>%x</code> format specifier of
+      the <code>sprintf</code> function. We refer to the manual page
+      of sprintf and find out the description of <code>%x</code>
+        specifier.</p>
+      <pre class="output">
+<span class="cmd">$ man sprintf</span>
+
+PRINTF(3)               Linux Programmer&apos;s Manual
+
+NAME
+       printf, fprintf, dprintf, sprintf, snprintf, vprintf, vfprintf,
+       vdprintf, vsprintf, vsnprintf - formatted output conversion
+...
+
+Conversion specifiers
+
+       A character that specifies the type of conversion to be
+       applied.  The conversion specifiers and their meanings are:
+
+       ...
+
+       x, X   The unsigned int argument is converted to unsigned
+              hexadecimal (x and X) notation. ...
+
+       ...
+
+       p      The void * pointer argument is printed in hexadecimal
+              (as if by %#x or %#lx).
+      </pre>
+      <p>This is quite revealing. The pointer address is being cast
+        to 4 byte integer using <code>(int)pBt</code> because
+        the <code>%x</code> specifier expects an <code>unsigned
+        int</code> argument. Doesn&apos;t a pointer address in 64 bit
+        systems require 8 bytes of storage? It is possible that
+        the <code>sprintf()</code> based code is only storing the
+        lower 32 bits of the pointer address and discarding the higher
+        32 bits of the memory address thereby resulting in
+        segmentation fault. Let us verify this hypothesis by
+        using the <code>%p</code> format specifier which is
+        specifically meant for converting a pointer address to string
+        representation. We update the <code>src/test3.c</code> to
+        return the string representation of pointer address using
+        both <code>%x</code> and <code>%p</code> specifiers.</p>
+      <h4>File: <a href="https://www.sqlite.org/src/file?name=src/test3.c&ci=61c38f3bfef430f3">src/test3.c#56</a></h4>
+      <pre class="code">
+static int btree_open(
+  ...
+  //sprintf(zBuf,"0x%x",(int)pBt);
+  sprintf(zBuf,"\nOld=0x%x \nNew=%p",(int)pBt, pBt);
+  ...
+}
+      </pre>
+      <p>Let us build the test code again and see if our hypothesis is
+      correct.</p>
+      <pre class="output">
+<span class="cmd">$ cd $HOME/sr/sqlite/2.2.1/build && make test</span>
+...
+btree-1.5...DEBUG: Showing values of btree-1.5 variables
+Value of b1={
+Old=    0x85b31db0
+New=0x558c85b31db0}
+...
+      </pre>
+
+      <p>Should we should jump like a scientist who has suddenly had a
+        Revelation? Amongst all the noisy output created by our debug
+        statements, we can see what we had been anticipating. Our
+        hypothesis was correct and we have found the reason for the
+        segmentation fault. The <code>%x</code> format specifier
+        in <code>sprintf()</code> function was indeed dropping the
+        higher 32 bits of the pointer address and only passing the
+        lower 32 bits of the pointer address corresponding to the newly
+        created btree database. All the subsequent tests which tried to
+        access the btree database using this pointer address caused the
+        segmentation fault error. We now work to fix the code such
+        that all the tests run successfully.</p>
+
+      <p>We observe that there are two occurrences of <code>0x%x</code>
+      in <code>src/test3.c</code>. We replace them
+        with <code>%p</code> as follows.</p>
+      <pre class="output">
+<span class="cmd">$ cat $HOME/sr/sqlite/2.2.1/sqlite/src/test3.c</span>
+static int btree_open(...)
+{
+  ...
+  //sprintf(zBuf,"0x%x",(int)pBt);
+  sprintf(zBuf,"%p",pBt);
+  ...
+}
+
+static int btree_cursor(...)
+{
+  ...
+  //sprintf(zBuf,"0x%x", (int)pCur);
+  sprintf(zBuf,"%p", pCur);
+  ...
+}
+      </pre>
+      <p>We compile the test again.</p>
+      <pre class="output">
+<span class="cmd">$ cd $HOME/sr/sqlite/2.2.1/build && make test</span>
+...
+bigrow-5.3... Ok
+bigrow-5.4... Ok
+btree-1.1... Ok
+btree-1.1.1...
+Error: integer value too large to represent as non-long integer
+btree-1.2... Ok
+btree-1.3...
+Expected: [0 {}]
+     Got: [1 {integer value too large to represent as non-long integer}]
+...
+      </pre>
+      <p>The error message is produced by the <code>do_test</code>
+        procedure defined in <code>test/tester.tcl</code>. This implies
+        that the test <code>btree-1.1.1</code> is executing some
+        instruction that is causing overflow of integer conversion
+        operation. From <code>test/btree.test</code>, we note
+        that <code>btree-1.1.1</code> test case triggers
+        the <code>btree_pager_stats</code>.</p>
+      <h4>File: test/btree.test</h4>
+      <pre class="code">
+...
+do_test btree-1.1.1 {
+  lindex [btree_pager_stats $::b1] 1
+} {0}
+...
+      </pre>
+      <p>What are the instructions being executed by
+        the <code>btree_pager_stats</code> function? Let us at this
+        function&apos;s definition in the <code>src/test3.c</code>
+        file.</p>
+      <h4>File: src/test3.c</h4>
+      <pre class="code">
+...
+static int btree_pager_stats(
+  void *NotUsed,
+  Tcl_Interp *interp,    /* The TCL interpreter that invoked this command */
+  int argc,              /* Number of arguments */
+  char **argv            /* Text of each argument */
+){
+  Btree *pBt;
+  int i;
+  int *a;
+
+  if( argc!=2 ){
+    ...
+    return TCL_ERROR;
+  }
+  if( Tcl_GetInt(interp, argv[1], (int*)&pBt) ) return TCL_ERROR;
+  a = sqlitepager_stats(sqliteBtreePager(pBt));
+  for(i=0; i<9; i++){
+    static char *zName[] = {
+      "ref", "page", "max", "size", "state", "err",
+      "hit", "miss", "ovfl",
+    };
+    char zBuf[100];
+    Tcl_AppendElement(interp, zName[i]);
+    sprintf(zBuf,"%d",a[i]);
+    Tcl_AppendElement(interp, zBuf);
+  }
+  return TCL_OK;
+}
+...
+      </pre>
+      <p>The <code>Tcl_GetInt()</code> function is trying to convert
+      the 64 bit pointer address passed as a string argument to 32 bit
+      integer representation and therefore causing the overflow
+      error. We can fix this using the standard
+        library&apos;s <code>strtol()</code> function.</p>
+      <h4>File: src/test3.c</h4>
+      <pre class="code">
+...
+static int btree_pager_stats(...)
+{
+  ...
+  //if( Tcl_GetInt(interp, argv[1], (int*)&pBt) ) return TCL_ERROR;
+  pBt = strtol(argv[1], NULL, 16);
+  if(!pBt) return TCL_ERROR;
+  a = sqlitepager_stats(sqliteBtreePager(pBt));
+  ...
+}
+...
+      </pre>
+      <p>We run the tests again.</p>
+      <pre class="output">
+<span class="cmd">$ cd $HOME/sr/sqlite/2.2.1/build && make test<span>
+...
+bigrow-5.3... Ok
+bigrow-5.4... Ok
+btree-1.1... Ok
+btree-1.1.1... Ok
+btree-1.2... Ok
+btree-1.3...
+Expected: [0 {}]
+     Got: [1 {integer value too large to represent as non-long integer}]
+btree-1.4...
+Expected: [0 {}]
+     Got: [1 {integer value too large to represent as non-long integer}]
+...
+      </pre>
+      <p>The <code>btree-1.1.1</code> test has passed, so
+        had <code>btree-1.2</code>. This shows that we are on the right
+        track. Let us fix the issue with <code>btree-1.3</code> in the
+        same way as we fixed the <code>btree-1.1.1</code> test. For
+        this, we have to fix a similar integer overflow error
+        in <code>btree_close()</code> function defined in <code>src/test3.c</code>.</p>
+      <h4>File: src/test3.c</h4>
+      <pre class="code">
+...
+static int btree_close(...)
+{
+  ...
+  //if( Tcl_GetInt(interp, argv[1], (int*)&pBt) ) return TCL_ERROR;
+  pBt = strtol(argv[1], NULL, 16);
+  if(!pBt) return TCL_ERROR;
+  rc = sqliteBtreeClose(pBt);
+  ...
+}
+...
+      </pre>
+      <p>We run the tests again and note that <code>btree-1.3</code>
+        passes while the test fails with <code>btree-1.4</code>. We now
+        know that this issue needs to be fixed in the following
+        places.</p>
+      <ul>
+        <li>btree-1.4 : <code>btree_begin_transaction()</code> in <code>src/test3.c</code></li>
+        <li>btree-1.5 : <code>btree_cursor()</code></li>
+        <li>btree-1.6 : <code>btree_insert()</code></li>
+        <li>btree-1.7 : <code>btree_key()</code></li>
+        <li>btree-1.8 : <code>btree_data()</code></li>
+        <li>btree-1.9 : <code>btree_close_cursor()</code></li>
+        <li>btree-1.10 : <code>btree_commit()</code></li>
+        <li>btree-2.2 : <code>btree_move_to()</code></li>
+        <li>btree-3.10 : <code>btree_next()</code></li>
+        <li>btree-4.2 : <code>btree_delete()</code></li>
+        <li>btree-5.1 : <code>btree_get_meta()</code></li>
+        <li>btree-5.2 : <code>btree_update_meta()</code></li>
+        <li>btree-5.5 : <code>btree_rollback()</code></li>
+        <li>btree-6.1 : <code>btree_create_table()</code></li>
+        <li>btree-6.7 : <code>btree_drop_table()</code></li>
+        <li>btree-7.2 : <code>btree_cursor_dump()</code></li>
+        <li>btree-13.1 : <code>btree_sanity_check()</code></li>
+        <li>btree-99.1 : <code>btree_close()</code></li>
+      </ul>
+      <p>We fix the <code>pBt</code> and <code>pCur</code> issues
+        in the functions shown above using the <code>strtol()</code>
+        function as shown below.</p>
+      <h4>File: src/test3.c</h4>
+      <pre class="code">
+...
+static int btree_insert()
+{
+  ...
+  //if( Tcl_GetInt(interp, argv[1], (int*)&pCur) ) return TCL_ERROR;
+  pCur = strtol(argv[1], NULL, 16);
+  if(!pCur) return TCL_ERROR;
+  rc = sqliteBtreeInsert(pCur, ...)
+  ...
+}
+...
+      </pre>
+
+      <p>We run the tests again and encounter another segmentation
+        fault error again.</p>
+      <pre class="output">
+<span class="cmd">$ cd $HOME/sr/sqlite/2.2.1/build && make</span>
+...
+btree-8.19... Ok
+btree-8.20... Ok
+btree-8.21... Ok
+btree-8.22... Ok
+btree-8.23... Ok
+btree-8.24... Ok
+btree-9.1... Ok
+btree-9.2...make: *** [Makefile:232: test] Segmentation fault
+      </pre>
+      <p>Let us inspect btree-9.2 test and find out the cause of
+      segmentation fault. The <code>btree-9.2</code> test case
+      invokes the following functions: <code>btree_insert(),
+      select_keys()</code>. We have already fixed
+      the <code>btree_insert()</code>. The <code>select_keys()</code>
+      procedure invokes the following
+      functions: <code>btree_move_to(), btree_key(), btree_next()</code>. We have
+      already fixed these two functions. So what is causing the
+      segmentation fault? The <code>btree_insert</code> is causing
+      segmentation fault. For the btree-9.1 test, why does
+      the <code>btree_insert()</code> function get invoked with
+      garbage data (e.g. "This is a long prefix ...")? This results
+      in the loop only iterating through 001 to 018. The 019
+      iteration gets to run in btree-9.2 test. Why such a mix up is
+      happening? It seems that the test case of 8.14 is spilling over
+      to 9.1 test case.</p>
+      <p>It appears that the overflow starts in btree-8.5. In the
+      test case btree-8.5, long sequence of characters (e.g. "*** This
+      is an even longer key *** This is an even ....") is inserted
+      against the key "020". This insertion does not seem to be
+      successful as it invokes the <code>btree_insert()</code>
+      function two times. There appears to be a lag in the value
+      printed inside the <code>src/test3.c::btree_insert()</code> C
+      function and the messages printed inside
+      the <code>test/btree.test::do_test</code> invocations.</p>
+      <p>It is important to do these in steps. It may be tempting to
+      use <code>grep</code> and <code>sed</code> tools to
+      automatically replace each occurrences. This does not help as it
+      also replaces other parts which are not essential for the test
+      and therefore may result in unintended results. After fixing
+      btree-2.2, you will notice that more tests start to pass with
+      just one fix as some common functions are used in most
+      tests.<strong>The mix up of error message seems to have been
+          caused by a missing <code>fflush(stdout)</code></strong>.</p>
+
+      <p>I suddenly realised that I can use gdb for debugging
+        using</p>
+      <pre class="cmd">
+cd $HOME/sr/sqlite/2.2.1/build
+cat Makefile > Makefile-release # create a backup
+sed -i 's/-g -O2/-ggdb -O0/' Makefile 
+make clean && make && make test
+gdb .libs/lt-testfixture
+(gdb) r ../sqlite/test/quick.test
+<span class="output">...
+btree-8.22... Ok
+btree-8.23... Ok
+btree-8.24... Ok
+btree-9.1... Ok
+btree-9.2...
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555557711 in cellSize (pCell=0x5555ffffbbc8) at ../sqlite/src/btree.c:334
+334	  int n = NKEY(pCell-&gt;h) + NDATA(pCell-&gt;h);
+(gdb) bt
+#0  0x0000555555557711 in cellSize (pCell=0x5555ffffbbc8) at ../sqlite/src/btree.c:334
+#1  0x000055555555acc0 in balance (pBt=0x555555639a70, pPage=0x55555563a740, pCur=0x5555556399f0) at ../sqlite/src/btree.c:1958
+#2  0x000055555555b7ec in sqliteBtreeInsert (pCur=0x5555556399f0, pKey=0x5555555dd730, nKey=3, pData=0x555555601f30, nData=35) at ../sqlite/src/btree.c:2144
+#3  0x00005555555628cb in btree_insert (NotUsed=0x0, interp=0x5555555870c0, argc=4, argv=0x55555558b9e0) at ../sqlite/src/test3.c:680
+#4  0x00007ffff7e50695 in TclInvokeStringCommand () from /home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+#5  0x00007ffff7e553f2 in TclNRRunCallbacks () from /home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+#6  0x00007ffff7e570d3 in TclEvalEx () from /home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+#7  0x00007ffff7f0b9c9 in Tcl_FSEvalFileEx () from /home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+#8  0x00007ffff7f0bb48 in Tcl_EvalFile () from /home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+#9  0x0000555555565563 in main (argc=2, argv=0x7fffffffe008) at ../sqlite/src/tclsqlite.c:620
+</span>
+      </pre>
+      <p>The gdb log shows that the SEGFAULT is triggered
+        by <code>cellSize()</code> which in turn is triggered
+        by <code>balance()</code>. We notice that before
+        the <code>cellSize()</code> method is invoked
+        in <code>balance()</code> method, a copy of pages is created
+        using the <code>copyPage()</code> function which is defined as
+        follows.</p>
+      <h4>File: src/btree.c</h4>
+      <pre class="code">
+...
+static void copyPage(MemPage *pTo, MemPage *pFrom){
+  uptr from, to;
+  ...
+  to = Addr(pTo);
+  from = Addr(pFrom);
+  for(i=0; i&lt;pTo-&gt;nCell; i++){
+    uptr x = Addr(pFrom-&gt;apCell[i]);
+    ...
+  }
+}
+...
+      </pre>
+      <p>The <code>Addr()</code> method is being used to get the
+      pointer address of source and destination pages. This raises a
+      suspicion that the <code>Addr()</code> method may only be using
+      the lower 32 bits of the pointer address. We look into
+      the <code>src/sqliteInt.h</code> file where this method is
+      defined.</p>
+      <h4>File: src/sqliteInt.h</h4>
+      <pre class="code">
+...
+/*
+** Integers of known sizes.  These typedefs might change for architectures
+** where the sizes very.  Preprocessor macros are available so that the
+** types can be conveniently redefined at compile-type.  Like this:
+**
+**         cc '-DUINTPTR_TYPE=long long int' ...
+*/
+#ifndef UINT32_TYPE
+# define UINT32_TYPE unsigned int
+#endif
+#ifndef UINT16_TYPE
+# define UINT16_TYPE unsigned short int
+#endif
+#ifndef UINT8_TYPE
+# define UINT8_TYPE unsigned char
+#endif
+#ifndef INTPTR_TYPE
+# define INTPTR_TYPE int
+#endif
+typedef UINT32_TYPE u32;           /* 4-byte unsigned integer */
+typedef UINT16_TYPE u16;           /* 2-byte unsigned integer */
+typedef UINT8_TYPE u8;             /* 1-byte unsigned integer */
+typedef INTPTR_TYPE ptr;           /* Big enough to hold a pointer */
+typedef unsigned INTPTR_TYPE uptr; /* Big enough to hold a pointer */
+
+/*
+** This macro casts a pointer to an integer.  Useful for doing
+** pointer arithmetic.
+*/
+#define Addr(X)  ((uptr)X)
+...
+      </pre>
+      <p>This provides a lot of relief as we know that we are near to
+        the possible fix of this issue. The <code>Addr()</code> is a
+        macro that casts the value to an <code>uptr</code> type which
+        in turn is of <code>unsigned int</code> type. Therefore, we
+        now know the cause of the SEGFAULT issue. The 64 bit pointer addresses
+        corresponding to different pages were wrongly converted to 32
+        bit <code>unsigned int</code>storage type. We correct this issue
+        as follows.</p>
+      <h4>File: src/sqliteInt.h</h4>
+      <pre class="code">
+...
+#ifndef INTPTR_TYPE
+//# define INTPTR_TYPE int
+# define INTPTR_TYPE long
+#endif
+...
+      </pre>
+      <p>After applying this fix, we recompile the tests.</p>
+      <pre class="output">
+<span class="cmd">$ cd $HOME/sr/sqlite/2.2.1/build && make</span>
+...
+btree-12.11... Ok
+btree-12.12... Ok
+btree-13.1...
+Error: integer value too large to represent as non-long integer
+btree-15.98... Ok
+btree-15.99... Ok
+btree-99.1... Ok
+lt-testfixture: integer value too large to represent as non-long integer
+...
+make: *** [Makefile:232: test] Error 1
+      </pre>
+      <p>We apply similar fixes.</p>
+      <h4>File: src/test3.c</h4>
+      <pre class="code">
+...
+static int btree_sanity_check(...)
+{
+  ...
+  //if( Tcl_GetInt(interp, argv[1], (int*)&pBt) ) return TCL_ERROR;
+  pBt = strtol(argv[1], NULL, 16);
+  if(!pBt) return TCL_ERROR;
+  ...
+  for(i=0; i&lt;argc-2; i++){
+    //if( Tcl_GetInt(interp, argv[i+2], &aRoot[i]) ) return TCL_ERROR;
+    aRoot[i] = strtol(argv[i+2], NULL, 16);
+    if(!aRoot[i]) return TCL_ERROR;
+  }
+  ...
+}
+...
+static int btree_clear_table(...)
+{
+  ...
+  //if( Tcl_GetInt(interp, argv[1], (int*)&pBt) ) return TCL_ERROR;
+  pBt = strtol(argv[1], NULL, 16);
+  if(!pBt) return TCL_ERROR;
+}
+...
+      </pre>
+      <p>All the btree tests now pass. Furthermore, other subsequent
+      tests (e.g. btree3, copy, delete, expr, func, in, index,
+        insert, ...) also pass except the pager tests.</p>
+      <pre class="output">
+...
+misc1-2.1... Ok
+misc1-2.2... Ok
+pager-1.0... Ok
+pager-1.1...make: *** [Makefile:232: test] Segmentation fault
+      </pre>
+      <p>We are now pretty confident that this issue is also related
+        to pointer address conversion. Let us load the tests again in
+        gdb and use the backtrace command to find the source of
+        SEGFAULT.</p>
+      <pre class="cmd">
+cd $HOME/sr/sqlite/2.2.1/build
+make clean && make && make test
+gdb .libs/lt-testfixture
+(gdb) r ../sqlite/test/quick.test
+<span class="output">...
+misc1-1.10... Ok
+misc1-1.11... Ok
+misc1-2.1... Ok
+misc1-2.2... Ok
+pager-1.0... Ok
+pager-1.1...
+Program received signal SIGSEGV, Segmentation fault.
+0x000055555555f907 in sqlitepager_stats (pPager=0x7fff55624440) at ../sqlite/src/pager.c:1096
+1096	  a[0] = pPager-&gt;nRef;</span><span class="cmd">
+(gdb) bt</span><span class="output">
+#0  0x000055555555f907 in sqlitepager_stats (pPager=0x7fff55624440) at ../sqlite/src/pager.c:1096
+#1  0x0000555555560a17 in pager_stats (NotUsed=0x0, interp=0x5555555870c0, argc=2, 
+    argv=0x55555558b9c0) at ../sqlite/src/test2.c:181
+#2  0x00007ffff7e50695 in TclInvokeStringCommand ()
+   from /home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+#3  0x00007ffff7e553f2 in TclNRRunCallbacks () from /home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+#4  0x00007ffff7e570d3 in TclEvalEx () from /home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+#5  0x00007ffff7f0b9c9 in Tcl_FSEvalFileEx () from /home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+#6  0x00007ffff7f0bb48 in Tcl_EvalFile () from /home/tlm/sr/sqlite/2.2.1/deps/lib/libtcl8.6.so
+#7  0x00005555555655a4 in main (argc=2, argv=0x7fffffffdff8) at ../sqlite/src/tclsqlite.c:620
+(gdb)
+</span>
+      </pre>
+      <p>This leads us to the <code>src/test2.c</code> source which
+      also includes the usage of <code>Tcl_GetInt()</code> to convert
+      string representation of pointer address to integer. We fix
+        this also in the same way as before.</p>
+      <h4>File: src/test2.c</h4>
+      <pre class="code">
+...
+static int pager_open(...)
+{
+  Pager *pPager;
+  int nPage;
+  ...
+  //sprintf(zBuf,"0x%x",(int)pPager);
+  sprintf(zBuf,"%p",pPager);
+  Tcl_AppendResult(interp, zBuf, 0);
+  return TCL_OK;
+}
+...
+static int pager_stats(...)
+{
+  Pager *pPager;
+  int i, *a;
+  if( argc!=2 ){
+    ...
+    return TCL_ERROR;
+  }
+  //if( Tcl_GetInt(interp, argv[1], (int*)&pPager) ) return TCL_ERROR;
+  pPager = strtol(argv[1], NULL, 16);
+  if(!pPager) return TCL_ERROR;
+  a = sqlitepager_stats(pPager);
+  ...
+}
+...
+      </pre>
+      <p>The following updates are required
+        in <code>src/test2.c</code>.</p>
+      <ul>
+        <li>pager-1.1 : pager_open() and pager_stats() in
+          src/test2.c</li>
+        <li>pager-1.2 : pager_pagecount() in src/test2.c</li>
+        <li>pager-1.4 : pager_close() in src/test2.c</li>
+        <li>pager-2.2 : page_get() in src/test2.c</li>
+        <li>pager-2.3.1 : page_lookup() in src/test2.c</li>
+        <li>pager-2.3.7 : page_unref() in src/test2.c</li>
+        <li>pager-2.7 : page_number() in src/test2.c</li>
+        <li>pager-2.8 : page_read() in src/test2.c</li>
+        <li>pager-2.17 : pager_commit() and pager_rollback() in src/test2.c</li>
+      </ul>
+      <p>The fixes are similar in nature to the fixes applied for
+        btree tests in <code>src/test3.c</code>.</p>
+      <h4>File: src/test2.c</h4>
+      <pre class="code">
+...
+static int pager_pagecount()
+{
+  ...
+  //if( Tcl_GetInt(interp, argv[1], (int*)&pPager) ) return TCL_ERROR;
+  pPager = strtol(argv[1], NULL, 16);
+  if(!pPager) return TCL_ERROR;
+  ...
+}
+...
+      </pre>
+      <p>After fixing the pager SEGFAULT, we rerun the test and now
+        the SEGFAULT appears in tableapi tests.</p>
+      <pre class="output">
+...
+table-7.1... Ok
+table-7.2... Ok
+table-7.3... Ok
+tableapi-1.0...make: *** [Makefile:232: test] Segmentation fault
+      </pre>
+      <p> Using gdb backtrace
+        feature and upon inspection of code in src/test1.c, we know
+        that the SEGFAULT is caused, again, by conversion of pointer
+        addresses to and from string representation. This time, it is
+        more remarkable as the pointer corresponding to sqlite
+        database is represented as a 32 bit integer
+        using <code>%d</code> format specifier which results in
+        overflow of the variable and therefore has a negative
+        value. The string representation of pointer address is
+        converted back to pointer using the <code>atoi()</code>
+        function. We fix these issues by using the <code>%p</code>
+        format specifier and <code>strtol()</code> function to
+        recover the pointer address from its string representation.</p>
+      <h4>File: <a href="https://www.sqlite.org/src/file?name=src/test1.c&ci=61c38f3bfef430f3">src/test1.c</a></h4>
+      <pre class="code">
+static int sqlite_test_open(...)
+{
+  sqlite *db;
+  char *zErr = 0;
+  char zBuf[100];
+  if( argc!=2 ){
+    ...
+    return TCL_ERROR;
+  }
+  db = sqlite_open(argv[1], 0666, &zErr);
+  if( db==0 ){
+    ...
+    return TCL_ERROR;
+  }
+  //sprintf(zBuf,"%d",(int)db);
+  sprintf(zBuf,"%p",db);
+  Tcl_AppendResult(interp, zBuf, 0);
+  return TCL_OK;
+}
+...
+static int test_exec_printf(
+  void *NotUsed,
+  Tcl_Interp *interp,    /* The TCL interpreter that invoked this command */
+  int argc,              /* Number of arguments */
+  char **argv            /* Text of each argument */
+){
+  sqlite *db;
+  ...
+  //db = (sqlite*)atoi(argv[1]);
+  db = strtol(argv[1], NULL, 16);
+  ...
+}
+...
+      </pre>
+      <p>After fixing the SEGFAULT issue with tableapi, we rerun the
+      test. All the tests pass except the <code>tcl-1.6</code>. We
+      ignore this test because it the error message format differs
+        between what it expects and what it got.</p>
+      <pre class="output">
+...
+tcl-1.1... Ok
+tcl-1.2... Ok
+tcl-1.3... Ok
+tcl-1.4... Ok
+tcl-1.5... Ok
+tcl-1.6...<span class="err">
+Expected: [1 {syntax error in expression "x*"}]
+     Got: [1 {invalid bareword "x" in expression "x*";
+           should be "$x" or "{x}" or "x(...)" or ...}]
+           tcl-2.1... Ok</span>
+tcl-2.2... Ok
+temptable-1.0... Ok
+temptable-1.1... Ok
+...
+</pre>
+
+      <p>All the tests now run successfully. This assures us that the
+        software able to deliver the functionality as expected by the
+        developers.</p>
+    </section>
+
+    <p>In the <a href="critique.html">next section</a>,
+      we critique the program code and documentation of sqlite
+      version 2.2.1 based on our experience of compiling and testing
+      it on a modern platform.</p>
+
+    <footer>
+      <p>Copyright 2022 REDACTED-FOR-PEER-REVIEW, Last Updated: <a href="REDACTED-FOR-PEER-REVIEW">2022-Sep-14</a></p>
+    </footer>
+  </body>
+</html>

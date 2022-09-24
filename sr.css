@@ -1,0 +1,68 @@
+/*
+
+ Style definitions for Software Resurrection Page
+
+ Author: REDACTED-FOR-PEER-REVIEW
+
+ Version History
+ 2022-07-09 : Initial version for drafts
+
+*/
+
+body { max-width:45em; padding:1em; margin:auto; }
+h1 { text-align:center; }
+address { text-align:center; }
+section h2 { margin-top:3em; }
+section h3 { margin-top:2em; }
+section p { line-height:140%; }
+
+section table { border-collapse:collapse; margin:1em 0; }
+section table thead { text-align:center; font-weight:bold; }
+section table thead th { padding:0.5em 1em; }
+section table tbody td { padding:0.5em 1em; }
+section table caption { font-size:0.8em; font-style:italic; caption-side:bottom; margin-top:1em; }
+
+section#toc {margin:4em 0; padding-left:1em; border-left:2px solid #808080; }
+section#toc ol { counter-reset:item; }
+section#toc ol>li { display:block; }
+section#toc ol>li:before { content: counters(item, ".") ". "; counter-increment:item; }
+
+section dt { margin-top:1em; margin-bottom:0.4em; }
+section li { margin:1.25em 0; }
+section pre { font-family:Mono; font-size:1em; padding-top:1.25em; padding-left:1em; white-space:pre; overflow:auto; margin:1em 0; }
+section pre.cmd, section .cmd { background-color:#000000; color:#009E73; }
+section pre.output, section .output { background-color:#000000; color:white; }
+section h4 + pre.code { background-color: #e6e6e6; margin:0; }
+section h4 { margin:0; padding:0.5em; border-bottom:1px solid #cccccc; background-color: #cccccc; font-weight:normal; }
+
+section .err { color:#D55E00; }
+section .ok { color:#009E73; }
+section code { margin:0 0.25em; font-size:1em; } /* for inline code <code>...</code> */
+
+section details { margin:1em 0; }
+section .issue { border:1px solid #D55E00; border-bottom:none; box-shadow: rgba(0, 0, 0, 0.35) 0px 2px 5px; }
+section .issue > summary { padding:0.5em; background-color:#D55E00; }
+section .issue_solution { border:1px solid #009E73; }
+section .issue_solution > summary { padding:0.5em; background-color:#009E73; }
+section .issue_solution > p { padding:1em; }
+section .lesson { border:1px solid #F0E442; box-shadow: rgba(0, 0, 0, 0.35) 0px 2px 5px; }
+section .lesson > summary { padding:0.5em; background-color:#F0E442;  }
+section .lesson > p { padding:1em; }
+section summary a { text-decoration:none; margin-left:0.5em; color: black; }
+
+section h3 { border-bottom:1px solid #cccccc; }
+
+section details aside { margin:1em; }
+section details aside h3 { margin:0; padding:0; }
+
+section blockquote { margin-top:2em; margin-bottom:2em; border-left:0.25em solid #cccccc; padding:1.25em 0.5em; }
+section blockquote .quote_source { margin-top:1em; float:right; }
+section blockquote .quote_source::before { content: "— " }
+
+section figure { display:block; text-align:center; margin:4em 1.25em; }
+section figure img { max-width:100%; }
+section figure figcaption { font-style:italic; font-size:0.9em; margin-top:1em; }
+
+
+footer { color:#999999; font-size:0.8em; margin:6em auto; text-align:center; }
+footer a { color:#999999; }

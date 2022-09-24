@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Software Resurrection of SQLite-2.2.1 (2002)</title>
+    <meta name="description" content="Software resurrection">
+    <meta name="viewport" content="width=device-width,
+                                   initial-scale=1, user-scalable=1">
+    <link rel="stylesheet" type="text/css" href="../../../sr.css">
+  </head>
+
+  <body>
+    <h1>Software Resurrection of SQLite-2.2.1 <br> (released in Jan. 2002)</h1>
+
+    <section id="toc">
+      <ol>
+        <li><a href="index.html">Introduction</a></li>
+        <li>Compile
+          <ol>
+            <li><a href="#sqlite:2.2.1:Compile:Issue-Section-2.1">Issue 1</a>: Compiler Support Dropped for &lt;varargs.h&gt;</li>
+            <li><a href="#sqlite:2.2.1:Compile:Issue-Section-2.2">Issue 2</a>: Name Conflict with Standard Library</li>
+          </ol>
+        </li>
+        <li><a href="test.html">Test</a></li>
+        <li><a href="critique.html">Critique</a></li>
+      </ol>
+    </section>
+
+    <section id="sqlite:2.2.1:Compile">
+      <h2>2. Compile</h2>
+      <p>First, we download the sqlite-2002 (i.e. <a target="_blank"
+                                                     href="https://www.sqlite.org/src/info/61c38f3bfef430f3">sqlite-2.2.1</a>
+        release) sources. We will use the following folder in
+        user&apos;s home folder to store all the files related to this
+        exercise: <code>$HOME/sr/sqlite/2.2.1/</code>.</p>
+      <pre class="cmd">
+## Download source for sqlite-2.2.1
+mkdir -p $HOME/sr/sqlite/2.2.1/
+cd $HOME/sr/sqlite/2.2.1/
+wget https://www.sqlite.org/src/tarball/61c38f3b/SQLite-61c38f3b.tar.gz
+tar -zxvf SQLite-61c38f3b.tar.gz
+mv SQLite-61c38f3b sqlite
+      </pre>
+
+      <p>Next, we look for instructions to compile the source code in
+        Unix like platform. Such instructions are commonly included in
+        a <a target="_blank" href="https://www.sqlite.org/src/file?name=README&ci=61c38f3bfef430f3">README</a>
+        file contained within the source distribution.</p>
+      <pre class="output">
+<span class="cmd">$ cat sqlite/README</span>
+This directory contains source code to
+
+    SQLite: An SQL Database Engine in a C Library
+...
+   tar xzf sqlite.tar.gz    ;#  Unpack the source tree into "sqlite"
+    mkdir bld                ;#  Build will occur in a sibling directory
+    cd bld                   ;#  Change to the build directory
+    ../sqlite/configure      ;#  Run the configure script
+    make                     ;#  Run the makefile.
+...
+      </pre>
+
+      <p>Recall that the compilation instructions were prepared in the
+        year 2002 and at that time the developers of SQLite could not
+        have seen how hardware and software platforms would change in 20
+        years. Still, the compilation instructions looks familiar to a
+        reader in the year 2022. We start the compilation process as
+        advised by the SQLite developers.</p>
+
+      <pre class="cmd">
+## Build sqlite-2.2.1
+cd $HOME/sr/sqlite/2.2.1/
+mkdir build
+cd build
+../sqlite/configure
+        </pre>
+      <p>All the above commands successfully execute to
+        completion. In the next section, we execute the build
+        process using the <code>make</code> command and get a
+        glimpse of our first issue.</p>
+
+      <h3 id="sqlite:2.2.1:Compile:Issue-Section-2.1">2.1 Compiler Support Dropped for &lt;varargs.h&gt;</h3>
+      <p>The sqlite-2002 software can be built using the GCC
+        compiler by executing the <code>make</code> as follows.</p>
+      <pre class="output">
+<span class="cmd">$ make</span>
+gcc -g -O2 -o lemon ../sqlite/tool/lemon.c
+In file included from ../sqlite/tool/lemon.c:10:
+/usr/lib/gcc/x86_64-linux-gnu/10/include/varargs.h:4:2: <span class="err">error</span>: #error "GCC no longer implements &lt;varargs.h&gt;."
+    4 | #<span class="err">error</span> "GCC no longer implements &lt;varargs.h&gt;."
+      |  ^~~~~
+/usr/lib/gcc/x86_64-linux-gnu/10/include/varargs.h:5:2: error: #error "Revise your code to use &lt;stdarg.h&gt;."
+    5 | #<span class="err">error</span> "Revise your code to use &lt;stdarg.h&gt;."
+      |  ^~~~~
+...
+../sqlite/tool/lemon.c:1096:1: <span class="err">error</span>: expected declaration specifiers before ‘va_dcl’
+ 1096 | va_dcl
+      | ^~~~~~
+...
+        </pre>
+
+      <p>sqlite-2002 does not compile in gcc-10.2.1 (2021) and
+        autoconf 2.69 (2012) because <code>tool/lemon.c</code>
+        uses <code>varargs.h</code> which was deprecated by the gcc
+        compiler since 4.0 (2005) release. How would we fix this
+        compilation issue? Learners will be able to go through the
+        experience of true self learning &mdash; which may lead to
+        some profound insights, for example, about atomic version
+        control commits &mdash; if they work to find a solution to
+        this issue on their own. Clicking the &quot;Issue 1:
+        ...&quot; box below will first reveal a tip which may help
+        arrive at the solution.</p>
+
+      <details id="sqlite:2.2.1:Compile:Issue-2.1:Details" class="issue">
+        <summary>Issue 2.1: support for &lt;varargs.h&gt; has been
+          dropped by the GCC compiler after
+          2004. <a title="Permanent Link" href="#sqlite:2.2.1:Issue-1">&sect;</a></summary>
+        <aside id="sqlite:2.2.1:Compile:Issue-2.1:Tip">
+          <h4>Tip</h4>
+          <p>Since the gcc
+            compiler <a target="_blank" href="https://gcc.gnu.org/gcc-3.4/changes.html">dropped
+              support</a> for <code>varargs.h</code> since April 2004
+            and switched to supporting <code>stdarg.h</code> to
+            provide the same functionality, the sqlite developers
+            must have adapted their code before the compilers
+            implemented this breaking change.</p>
+        </aside>
+        <details id="sqlite:2.2.1:Compile:Issue-2.1:Fix" class="issue_solution">
+          <summary>Fix for Issue 2.1</summary>
+          <p>The <code>vararg</code> issue was fixed only in
+            <a target="_blank" href="https://www.sqlite.org/src/info/590f963b6599e4e2">sqlite-2.8.1</a>
+            release by replacing dependence on <code>varargs.h</code>
+            with
+            <code>stdarg.h</code>. Unfortunately, a fix for this issue
+            did not appear in a single commit and therefore we had to
+            selectively we borrow code updates for
+            <code>tool/lemon.c</code>
+            from <a href="https://www.sqlite.org/src/info/590f963b6599e4e2">sqlite-2.8.1</a>
+            release. The patch that fixes this issue can be applied to
+            sqlite-2.2.1 source code as follows.
+            <pre class="cmd">
+## Apply patch to fix the issue about &lt;varargs.h&gt; (i.e. Issue 1)
+mkdir -p $HOME/sr/sqlite/2.2.1/patches
+cd $HOME/sr/sqlite/2.2.1/patches
+wget https://sr.github.io/data/sqlite/2.2.1/patches.tar.gz
+tar -zxvf patches.tar.gz
+cd $HOME/sr/sqlite/2.2.1/sqlite
+patch -p1 < $HOME/sr/sqlite/2.2.1/patches/1-varargs.patch
+            </pre>
+
+          <p>The patching process confirmation is provided by the
+            following message.</p>
+          <pre class="output">
+patching file tool/lemon.c
+            </pre>
+        </details>
+      </details>
+
+      <h3 id="sqlite:2.2.1:Compile:Issue-Section-2.2">2.2 Name Conflict with Standard Library</h3>
+      <p>After fixing <a href="#sqlite:2.2.1:Compile:Issue-2.1">Issue
+          2.1</a>, we run the <code>make</code> command again to continue
+        the build process for sqlite-2002.</p>
+      <pre class="cmd">
+## Build sqlite-2.2.1 again after fixing Issue 1
+cd $HOME/sr/sqlite/2.2.1/build
+../sqlite/configure
+make
+      </pre>
+
+      <p>The compilation process proceeds ahead and now stops at another
+        point with the following compilation error message.</p>
+      <pre class="output">
+../sqlite/src/shell.c:50:14: <span class="err">error</span>: conflicting types for 'getline'
+   50 | static char *getline(char *zPrompt, FILE *in){
+      |              ^~~~~~~
+In file included from ../sqlite/src/shell.c:19:
+/usr/include/stdio.h:616:18: note: previous declaration of 'getline' was here
+  616 | extern __ssize_t getline (char **__restrict __lineptr,
+      |                  ^~~~~~~
+make: *** [Makefile:129: sqlite] Error 1
+      </pre>
+
+      <p>The error message suggests that <code>getline()</code> method defined in
+        <code>src/shell.c:50</code> of sqlite-2002 source conflicts with
+        the <code>getline()</code> method defined in <code>&lt;stdio.h&gt;</code>
+        standard library.</p>
+
+      <details id="sqlite:2.2.1:Compile:Issue-2.2:Details" class="issue">
+        <summary>Issue 2.2: name conflict with standard library</summary>
+        <aside id="sqlite:2.2.1:Compile:Issue-2.2:Tip">
+          <h4>Tip</h4>
+          <p>If the <code>getline()</code> method were a part of the
+            standard library, the authors of sqlite-2.2.1 would have
+            renamed their version of <code>getline()</code> before the
+            release to avoid such conflicts. The standard library must
+            have been updated after the release of sqlite-2.2.1
+            (i.e. after Jan. 2002). Therefore, one of the commits (or
+            checkouts) in the version control system history of SQLite
+            may contain a fix for this issue as the SQLite software
+            would have adapted to this change in the standards. Which
+            keywords will you use
+            in your <a href="https://sqlite.org/src/search?y=c">search</a>
+            to locate this commit?</p>
+        </aside>
+        <details id="sqlite:2.2.1:Compile:Issue-2.2:Fix"
+                 class="issue_solution">
+          <summary>Solution to Issue 2.2</summary>
+          <p>If we search the version control system of sqlite for the
+            keyword <a target="_blank"
+                       href="https://sqlite.org/src/search?s=%22getline%28%29%22&y=c">"getline()"</a>,
+            we get only one result which corresponds to
+            the <a target="_blank"
+                   href="https://sqlite.org/src/info/558969ee8697180c">commit</a>
+            that resolved the name conflict. The conflict resolution
+            (see <a target="_blank"
+                    href="https://sqlite.org/src/vpatch?from=93a2c961b17d2459&to=558969ee8697180c">patch</a>)
+            involved renaming the method
+            to <code>local_getline()</code>.</p>
+          <p>The patch that fixes this issue can be
+            viewed <a href="https://sqlite.org/src/vpatch?from=93a2c961b17d2459&to=558969ee8697180c">here</a>
+            and this patch can be applied to the sqlite-2002 source as
+            follows.
+            <pre class="cmd">
+## Apply patch to fix the issue about <varargs.h> (i.e. Issue 1)
+## Assumption: Issue 1 (i.e. varargs issue) has already been fixed
+cd $HOME/sr/sqlite/2.2.1/sqlite
+patch -p1 < $HOME/sr/sqlite/2.2.1/patches/2-getline.patch
+            </pre>
+
+          <p>The patching process confirmation is provided by the
+            following message.</p>
+          <pre class="output">
+patching file src/shell.c
+            </pre>
+        </details>
+      </details>
+
+      <p>After fixing <a href="">Issue 2</a>, the sqlite-2002 source
+        compiles successfully and produces the executable
+        (e.g. <code>sqlite</code>) that can be used to run the SQLite
+        database engine.</p>
+      <pre class="output">
+<span class="cmd">$ cd $HOME/sr/sqlite/2.2.1/build && make</span>
+...
+gcc -g -O2 -DOS_UNIX=1 -DOS_WIN=0 -DHAVE_USLEEP=1 -I. -I../sqlite/src -DHAVE_READLINE=1 -I/usr/include/readline -o .libs/sqlite ../sqlite/src/shell.c  ./.libs/libsqlite.so -lreadline -Wl,--rpath -Wl,/usr/local/lib
+creating sqlite
+      </pre>
+    </section>
+
+    <p>In the <a href="test.html">next section</a>, we test the
+    sqlite-2002 software on a modern platform.</p>
+
+    <footer>
+      <p>Copyright 2022 REDACTED-FOR-PEER-REVIEW, Last Updated: <a href="REDACTED-FOR-PEER-REVIEW">2022-Sep-14</a></p>
+    </footer>
+  </body>
+</html>

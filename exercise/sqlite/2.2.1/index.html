@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Software Resurrection of SQLite-2.2.1 (2002)</title>
+    <meta name="description" content="Software resurrection">
+    <meta name="viewport" content="width=device-width,
+                                   initial-scale=1, user-scalable=1">
+    <link rel="stylesheet" type="text/css" href="../../../sr.css">
+  </head>
+
+  <body>
+    <h1>Software Resurrection of SQLite-2.2.1 <br> (released in Jan. 2002)</h1>
+
+    <section id="toc">
+      <ol>
+        <li>Introduction</li>
+        <li><a href="compile.html">Compile</a></li>
+        <li><a href="test.html">Test</a></li>
+        <li><a href="critique.html">Critique</a></li>
+      </ol>
+    </section>
+
+    <section id="sqlite:2.2.1:Section:Introduction">
+      <h2>1. Introduction</h2>
+      <p>This article describes compilation and testing
+        of a historical software release of the
+        <a target="_blank" href="https://sqlite.org/">SQLite</a>
+        database engine on a modern hardware and software
+        platform. The goal is to learn the software engineering
+        principles that emerge from the issues encountered during
+        resurrection of a well maintained and widely adopted open
+        source software. This learning exercise, called software
+        resurrection, has been introduced in
+        the REDACTED-FOR-PEER-REVIEW.</p>
+
+      <figure>
+        <img src="img/software-resurrection-flowchart.png">
+        <figcaption>Software resurrection exercise begins with
+          compilation of an old release of a well maintained and widely used
+          software in a modern hardware and software platform. After
+          successful compilation, the software's functionality is verified
+          using automated suite of tests included with the release. Learning
+          opportunities are provided by failure in compilation and testing
+          processes. Learners engage with the program code and documentation
+          to develop a fix for these issues. Finally, the exercise concludes
+          by writing a critique of the software code and documentation which
+          provides the opportunity to reflect on the experiences of
+          compiling and testing the software in a modern
+          platform.</figcaption>
+      </figure>
+
+      <p>The SQLite database engine has been selected for
+        software resurrection because of the following reasons.</p>
+      <dl>
+        <dt>Long History</dt>
+        <dd>The SQLite software has a long history (of more than 20
+          years) of being actively developed and maintained. Software
+          issues related to maintainability of a software show up only
+          when we look at longer time scales (e.g. a span of 20 years). A software
+          released only few years ago (e.g. 3 years ago) is most
+          likely to compile successfully in a modern platform because
+          the hardware and software dependencies do not introduce
+          breaking changes in such a short span of time. Therefore,
+          old releases of SQLite are suitable for the software
+          resurrection exercise.</dd>
+
+        <dt>Version Controlled History</dt>
+        <dd>The SQLite software project maintains a <a target="_blank"
+                                                       href="https://www.sqlite.org/src/doc/trunk/README.md">publicly
+            accessible Version Control System (VCS) history</a> of all
+          code revisions since 29th May 2000. For example, the VCS
+          <a target="_blank"
+             href="https://www.sqlite.org/src/info/61c38f3bfef430f3">checkout</a>
+          (or commit) and <a target="_blank"
+                             href="https://www.sqlite.org/src/tree?ci=61c38f3bfef430f3">source
+            code distribution</a> for sqlite-2.2.1 are publicly
+          accessible in a online format and are available to
+          download for offline use as well. Since SQLite has been
+          actively developed and maintained, its version controlled
+          history is highly likely to contain a fix for the issues
+          encountered during software resurrection of
+          sqlite-2002. If the learner is unable to develop a fix
+          for an issue, the learner will explore different source
+          of information (e.g. web search, documentation, etc.) to
+          obtain a fix. The version control history is also a
+          possible source of ideas for a fix or may even contain
+          the fix in a form that is easy to borrow.</dd>
+
+        <dt>Self Contained Tests</dt>
+        <dd>The self contained test suite included with the old
+          releases of SQLite allows us to verify the functionality of
+          the sqlite software in a modern platform. Such tests are
+          essential to assure the learner that the fixes applied to
+          compile the software in a modern platform has not changed the
+          behaviour of the software.</dd>
+
+        <dt>Familiarity with the Programming Language</dt>
+        <dd>SQLite is developed using the C programming language. The
+          author of this article is familiar with the C programming
+          language and therefore this software can be resurrected by the
+          author of this article.</dd>
+      </dl>
+
+
+      <p>We pursue software resurrection exercise on the sqlite-2.2.1
+        (<a target="_blank"
+            href="https://www.sqlite.org/src/info/61c38f3bfef430f3">VCS
+          checkout</a>,
+        <a target="_blank" href="">source distribution</a>) version
+        which was released on 9th January 2002 (more than 20 years
+        ago). We use the keywords <strong>sqlite-2002</strong>
+        throughout this article to refer to
+        <a target="_blank"
+           href="https://www.sqlite.org/src/info/61c38f3bfef430f3">sqlite-2.2.1</a>.
+        This software release version is no longer maintained and
+        is not recommended for use in production system. However,
+        this article will show that sqlite-2002 is a valuable
+        resource for learning and that it may contribute growth in
+        wisdom of the learner. We use the following hardware and
+        software environment for software resurrection exercise of
+        sqlite-2002.</p>
+
+      <ul>
+        <li>
+          <strong>Hardware</strong>: A laptop purchased in 2019 with
+          the following specifications.
+          <table>
+            <tbody>
+              <tr><td>Model</td><td>Intel(R) Core(TM) i9-9980HK CPU @
+                  2.40GHz</td></tr>
+              <tr><td>Architecture</td><td>x86_64</td></tr>
+              <tr><td>Byte Order</td><td>Little Endian</td></tr>
+              <tr><td>Address sizes</td><td>39 bits physical, 48 bits virtual</td></tr>
+              <tr><td>CPU(s)</td><td>16 (Family: 6, Model: 158, cpu MHz: 800.072)</td></tr>
+              <tr><td>Threads per code</td><td>2</td></tr>
+              <tr><td>Core per socket</td><td>8</td></tr>
+              <tr><td>Socket</td><td>1</td></tr>
+              <tr><td>Memory</td><td>Cache: 16 MB, RAM: 32 GB</td></tr>
+            </tbody>
+          </table>
+        </li>
+        <li>
+          <strong>Software</strong>
+          <table>
+            <tbody>
+              <tr><td>Operating System</td><td>Debian GNU/Linux 11.3 (bullseye) released on March 26th 2022</td></tr>
+              <tr><td>Compiler</td><td>gcc-10.2.1 (Debian 10.2.1-6) 20210110</td></tr>
+            </tbody>
+          </table>
+        </li>
+      </ul>
+
+      <p>In the <a href="compile.html">next section</a>, we begin the
+        software resurrection process by compiling the sqlite-2002
+        database engine on a modern hardware and software platform. All
+        the steps described in this tutorial can be reproduced by
+        executing a single script as follows.</p>
+      <h4>Patch sqlite-2.2.1 released in 2002 such that it compiles
+        in a modern hardware and software platform.</h4>
+      <pre class="code">
+mkdir -p $HOME/sr/sqlite/2.2.1/
+cd $HOME/sr/sqlite/2.2.1/
+wget https://sr.github.io/exercise/sqlite/2.2.1/patches.zip
+unzip patches.zip
+cd patches
+
+## the apply-patch.sh script does the following
+## 1. downloads sqlite-2.2.1 source
+## 2. applies patches
+## 3. builds sqlite and executes regression tests
+./apply-patch.sh $HOME/sr/sqlite/2.2.1/sqlite/
+      </pre>
+    </section>
+
+    <footer>
+      <p>Copyright 2022 REDACTED-FOR-PEER-REVIEW, Last Updated: <a href="REDACTED-FOR-PEER-REVIEW">2022-Sep-14</a></p>
+    </footer>
+  </body>
+</html>
