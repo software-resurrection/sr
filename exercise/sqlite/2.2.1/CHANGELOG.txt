@@ -1,0 +1,11 @@
+2022-09-17
+- improved the first paragraph of the Introduction section.
+
+2022-09-14
+- added Juvenal (Satire VI) quotation to the test section of
+  sqlite-2.2.1 (thank you @samuel-albanie)
+- applied some grammatical corrections (thank you @prasanna-sridhar
+  and @samuel-albanie)
+
+2022-09-12
+- published to personal website (https://abhishekdutta.org/sr/)

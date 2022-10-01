@@ -1,0 +1,11 @@
+diff --git a/src/pager.h b/src/pager.h
+index c0b83f0..6a6f686 100644
+--- a/src/pager.h
++++ b/src/pager.h
+@@ -66,5 +66,5 @@ int *sqlitepager_stats(Pager*);
+ 
+ #ifdef SQLITE_TEST
+ void sqlitepager_refdump(Pager*);
+-int pager_refinfo_enable;
++extern int pager_refinfo_enable;
+ #endif

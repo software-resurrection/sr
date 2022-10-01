@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <title>Software Resurrection of SQLite-2.2.1 (2002)</title>
+    <meta name="author" content="Abhishek Dutta">
     <meta name="description" content="Software resurrection">
     <meta name="viewport" content="width=device-width,
                                    initial-scale=1, user-scalable=1">
@@ -11,7 +12,11 @@
 
   <body>
     <h1>Software Resurrection of SQLite-2.2.1 <br> (released in Jan. 2002)</h1>
+    <address>by <a rel="author"
+                   href="https://abhishekdutta.org">Abhishek Dutta</a>
+    </address>
 
+    <!-- TODO: Manually add table of contents in the final version -->
     <section id="toc">
       <ol>
         <li><a href="index.html">Introduction</a></li>
@@ -142,7 +147,7 @@ In file included from ../sqlite/tool/lemon.c:10:
 ## Apply patch to fix the issue about &lt;varargs.h&gt; (i.e. Issue 1)
 mkdir -p $HOME/sr/sqlite/2.2.1/patches
 cd $HOME/sr/sqlite/2.2.1/patches
-wget https://sr.github.io/data/sqlite/2.2.1/patches.tar.gz
+wget https://abhishekdutta.org/sr/exercise/sqlite/2.2.1/patches.tar.gz
 tar -zxvf patches.tar.gz
 cd $HOME/sr/sqlite/2.2.1/sqlite
 patch -p1 < $HOME/sr/sqlite/2.2.1/patches/1-varargs.patch
@@ -251,7 +256,7 @@ creating sqlite
     sqlite-2002 software on a modern platform.</p>
 
     <footer>
-      <p>Copyright 2022 REDACTED-FOR-PEER-REVIEW, Last Updated: <a href="REDACTED-FOR-PEER-REVIEW">2022-Sep-14</a></p>
+      <p>Copyright 2022 Abhishek Dutta, Last Updated: <a href="CHANGELOG.txt">2022-Sep-14</a></p>
     </footer>
   </body>
 </html>
