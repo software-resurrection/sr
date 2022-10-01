@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <title>Software Resurrection of SQLite-2.2.1 (2002)</title>
+    <meta name="author" content="Abhishek Dutta">
     <meta name="description" content="Software resurrection">
     <meta name="viewport" content="width=device-width,
                                    initial-scale=1, user-scalable=1">
@@ -11,6 +12,9 @@
 
   <body>
     <h1>Software Resurrection of SQLite-2.2.1 <br> (released in Jan. 2002)</h1>
+    <address>by <a rel="author"
+                   href="https://abhishekdutta.org">Abhishek Dutta</a>
+    </address>
 
     <section id="toc">
       <ol>
@@ -107,7 +111,7 @@
         feature is no longer available without defining the macro
         <code>USE_INTERP_RESULT</code>. The GCC compiler permits, for example,
         the <code>deprecated</code> attribute for a function to show a warning if
-        the an unsupported function gets used. However, such a feature is not
+        an unsupported function gets used. However, such a feature is not
         available for data member access and is the reason, most likely, why
         such informative warnings were not generated when the <code>result</code>
         field of the <code>Tcl_Interp</code> data structure was accessed.</p>
@@ -283,63 +287,76 @@ static char *getline(char *zPrompt, FILE *in){
 
 
       <h3 id="sqlite:2.2.1:Critique:Section-4.5">4.5 Tests build trust</h3>
-      <p>The SQLite database engine was ready to use after the successful
-        compilation of the sqlite-2002 as described in
-        <a href="compile.html#sqlite:2.2.1:Section:Compile">Compile
-          section</a>. One could create some tables, insert some sample
-        data, search for an entry and delete those entries to confirm
-        that the database engine is functioning properly even after 20
-        years of its release. While these mock tests allow verification
-        of the basic functionality of the software, it is not sufficient
-        to build trust in the software. In other words, the ad hoc and
-        mock tests cannot convince someone to use this software for
-        storing and managing critical information like financial or
-        medical data. One requires more stronger guarantees which can
-        only be provided by automated and self contained tests that can
-        be run by the users in their own machines. The developers of the
-        sqlite-2002 are best placed to build such automated tests
-        because they can reasonably be expected to quantify the desired
-        behaviour of the software. Such suite of software tests are
-        essential to build trust between the user and the software. The
-        sqlite-2002 software contains such a self contained suite of
-        tests and therefore allows its users to build such a trust even
-        after 20 years of its release.</p>
+      <p>Test suite of a software is commonly seen as a tool by the developers
+        and for the developers because it is used by a developer to verify the
+        functionality of a software. The software resurrection exercise has
+        highlighted another role of a test suite; a test suite is also a
+        valuable tool for building trust with the users.</p>
+
+      <p>Successful <a href="compile.html#sqlite:2.2.1:Section:Compile">compilation</a>
+        of a 20 year old software (i.e. sqlite-2002) on a modern
+        platform brought happiness and a sense of achievement during
+        the software resurrection exercise. However, these feelings of
+        achievement were quickly overshadowed by the realisation that
+        the sqlite-2002 software may not be reliable on a modern
+        platform. Successful compilation on a modern platform does not
+        provide the assurances required to rely on this software for
+        storing critical information like financial or medical
+        data. The self contained test suite shipped with this software
+        was able to automatically test various parts of the database
+        engine and report the test results as shown below.</p>
+
+      <pre class="output">
+bigrow-1.0... Ok
+bigrow-1.1... Ok
+bigrow-1.2... Ok
+...
+btree-1.2... Ok
+btree-1.3... Ok
+btree-1.4... Ok
+...
+      </pre>
+
+      <p>These concise messages from the test suite containing 5096
+        test cases confirmed that the freshly compiled SQLite database engine
+        was performing as expected even after significant changes in hardware
+        and software that could not have been foreseen 20 years ago. The test
+        suite was designed by the developers of SQLite who can be reasonably
+        expected to correctly quantify the desired behaviour of their
+        software. Therefore, the results from this test suite is more
+        convincing and is able to build trust with its users which would not
+        have been possible otherwise.</p>
 
       <h3 id="sqlite:2.2.1:Critique:Section-4.6">4.6 Tests define the
         expected behaviour of a software.</h3>
-      <p>Successful compilation of a 20 year old software (i.e. sqlite-2002) on
-        a modern platform brought happiness and a sense of
-        achievement. However, these feelings were quickly overshadowed by
-        doubts as it became clear that the sqlite-2002 software was not
-        designed to run on future platforms; the developers of SQLite could
-        not be foreseen how the hardware and software would change in 20
-        years. Therefore, although the software compiled successfully in a
-        modern platform, it was not known if the software can function in the
-        way that its developers had expected during its released in the year
-        2002. Is it possible to concretely define the behaviour of a software
-        as it was desired in the year 2002?</p>
 
-      <p>The sqlite-2002 documentation states that this version of
-        sqlite, "implements a large subset of SQL92." and allows
-        "atomic commit and rollback protect data integrity". It is
-        possible to prepare some SQL query statements based on the
-        SQL92 standard and prepare some SQL tables to test atomic
-        commits. However, will these be sufficient to confirm that the
-        software is truly behaving in the way it was designed to
-        behave before its release in the year 2002? The developers of
-        sqlite-2002 were best placed to know the desired and expected
-        behaviour of this version of SQLite. One could write hundreds
-        of pages of documents or use formal software verification
-        methods to describe the expected behaviour of a software. The
-        software resurrection exercise has highlighted the role of
-        automated and self-contained tests in allowing one to quickly
-        and easily verify the functionality of a software. These tests
-        not only verify functionality of a software on a new platform
-        but also act as a concrete specification of the correct
-        behaviour of a software. Such tests are also useful for
-        developing an understanding of the input and output
-        characteristics of a software.</p>
+      <p>The sqlite-2002 documentation states that this version of sqlite,
+      "implements a large subset of SQL92" standard and allows "atomic
+      commit and rollback protect data integrity". It is possible to
+      prepare some SQL query statements based on the SQL92 standard and
+      prepare some SQL tables to test atomic commits. However, will these be
+      sufficient to confirm that the software is truly behaving in the way
+      it was designed to operate during its release in the year 2002?
+      Furthermore, how can one possibly know what was the desired behaviour
+      of sqlite-2002 as envisaged by its developers 20 years ago?</p>
 
+      <p>It is possible
+      to <a href="https://dl.acm.org/doi/10.1145/1459352.1459354">formally
+      specify</a> the expected behaviour of a software. One can also
+      write a detailed documentation describing the expected
+      behaviour. While none of these are available for sqlite-2002,
+      the historical software release does include a set of self
+      contained and automated tests which allow one to quickly and
+      easily verify the functionality of the software on a new
+      platform. These tests not only verify functionality but also act
+      as a concrete specification of the expected behaviour of the
+      software as envisaged by its developers 20 years ago. For
+      example, one can understand the expected behaviour of the
+      database storage engine of sqlite-2002 by reviewing all the test
+      cases defined in the \texttt{test/btree.test} source
+      file. Therefore, tests are not only useful for verifying the
+      functionality of a software but also are valuable for concretely
+      specifying the expected behaviour of the software.</p>
 
       <h3 id="sqlite:2.2.1:Critique:Section-4.7">4.7 Who tests the
         Test?</h3>
@@ -348,39 +365,32 @@ static char *getline(char *zPrompt, FILE *in){
         <span class="quote_source">Juvenal (<a href="https://en.wikiquote.org/wiki/Juvenal">Satire VI</a>)</span>
       </blockquote>
 
-      <p>An automated and self contained test suite is a program code
-        that has been designed to test a software. The test suite invokes
-        various features of the software with a set of test inputs and
-        compares it against a set of corresponding expected outputs. If there
-        is a mismatch, the test suite shows a failure message that informs
-        about an unexpected behaviour in the software. The testing process
-        relies on the assumption that the test suite is operating
-        correctly.</p>
+      <p>An automated and self contained test suite is a program code that has
+        been designed to test a software. The test suite invokes various
+        features of the software with a set of test inputs and compares it
+        against a set of corresponding test outputs. If the test suite has a
+        complex logic and involves substantial amount of program code then the
+        test suite merits a testing process for itself to ensure that the test
+        code does not have any flaws. This leads to a recursive testing
+        dependency in which a tests suites is developed to test another test
+        suite. Such a never ending scenario can only be avoided by a test
+        suite that is so simple that it does not demand a test for itself. A
+        simple test suite has minimal code and has minimal chances of
+        failure. Only such a simple test suite is capable of assuring that a
+        failed test case points to a failure in the software being tested and
+        does not correspond to a flaw in the test code itself.</p>
 
-      <p>The sqlite-2002 test suite crashed with a SEGFAULT error while running
-        the <code>btree-1.1</code> test case. An investigation revealed the test
-        suite architecture as shown in figure below. The test cases (e.g.
-        <code>btree-1.1</code>) in sqlite-2002 are defined using the Tcl
-        programming language (\eg <code>test/btree.test</code>). The core SQLite
-        database engine is defined using the C programming language (e.g.
-        <code>src/btree.c</code>). A test driver layer contains a set of functions
-        (\eg <code>btree_open</code> defined in <code>src/test{1,2,3}.c</code>)
-        that allows the Tcl based test specifications to access functionality
-        of the core SQLite database
-        engine. The figure shown below illustrates the control
-        and data flow for the test case <code>btree-1.1</code> whose purpose is to
-        verify the sqlite engine's ability to create a new database and
-        represent it using a btree data structure stored in a disk file. The
-        coordination between the test specification code and the test driver
-        layer relies on correctly exchanging the pointer address of the
-        database. An arduous and often frustrating debugging process revealed
-        that this exchange of pointer address was failing because the test
-        driver layer assumed that memory addresses were 32 bits long. Such an
-        assumption broke most of the test code because the driver layer
-        wrongly translated 64 bit pointer addresses (e.g.
-        <code>0x5555555e3db0</code>) to 32 bit pointer addresses (e.g.
-        <code>0x555e3db0</code>) by dropping the higher 32 bits portion of the
-        address. This resulted in the segmentation fault error.</p>
+      <p>The test cases (e.g. <code>btree-1.1</code>) in sqlite-2002 are defined
+        using the Tcl programming language (e.g. <code>test/btree.test</code>). The
+        core sqlite database engine is defined using the C programming
+        language (e.g. <code>src/btree.c</code>). A test driver layer contains a
+        set of functions (e.g. <code>btree_open</code> defined in
+        <code>src/test{1,2,3}.c</code>) that allows the Tcl based test
+        specifications to access functionality of the core sqlite database
+        engine. Figure below illustrates the control
+        and data flow for the test case <code>btree-1.1</code> which verifies the
+        ability of the sqlite engine to create a new database and represent it
+        using the btree data structure stored in a disk file.</p>
 
       <figure>
         <img src="img/test-distance.png">
@@ -393,29 +403,20 @@ static char *getline(char *zPrompt, FILE *in){
           as Tcl commands.</figcaption>
       </figure>
 
-      <p>The software resurrection exercise on sqlite-2002 has shown
-        that if a test suite has complex logic and involves
-        substantial program code then the test suite merits a testing
-        process for itself to ensure that the test code does not have
-        any flaws. This leads to a recursive testing dependency in
-        which a test suite a test for itself in order to assure that
-        the test suite is functioning correctly. Such a requirement
-        can be avoided by a test suite that is so simple that it does
-        not demand a test for itself. For example, a test suite which
-        requires an elaborate setup and complex exchanges of data
-        between the test suite and the software is highly likely to
-        fail in its duty of reliably testing the software. On the
-        other hand, a test suite that simply instantiates an object
-        and triggers a method of the object is less likely to
-        fail. The test control and data flow process shown in figure
-        above must have its merits and therefore was chosen by the
-        sqlite-2002 developers. However, the issues encountered while
-        testing the sqlite-2002 on a modern platform did highlight the
-        need for tests that have minimal setup and simple logic. Only
-        such simple test suites are capable of providing assurances
-        that any failure in the testing process can be solely
-        attributed to the software that is being tested and does not
-        correspond to an issue caused by the test code itself.</p>
+      <p>The sqlite-2002 tests failed to run on a modern 64 bit platform
+        because the test driver layer assumed that memory addresses were 32
+        bits long. Such an assumption broke most of the test code because the
+        driver layer wrongly translated 64 bit pointer addresses (e.g.
+        <code>0x5555555e3db0</code>) to 32 bit pointer addresses (e.g.
+        <code>0x555e3db0</code>) by dropping the higher 32 bits of the
+        address portion. The test code did not operate properly and
+        therefore failed to properly test the software. The test
+        control and data flow shown in figure below must have its
+        merits and therefore was chosen by the sqlite-2002
+        developers. However, this failure forces one to rethink about
+        introducing any complexity in test suites and aim for tests
+        that are based on the most fundamental and stable features of
+        a compiler.</p>
 
       <figure>
         <img src="img/who-tests-the-Test-dilemma.png">
@@ -480,15 +481,14 @@ static char *getline(char *zPrompt, FILE *in){
       </figure>
     </section>
 
-    <!--
     <section>
       <h2>Acknowledgements</h2>
-      <p>TODO</p>
+      <p>The author is grateful to Prasanna Sridhar for reviewing this
+      exercise and suggesting ways to improve its clarity.</p>
     </section>
-    -->
 
     <footer>
-      <p>Copyright 2022 REDACTED-FOR-PEER-REVIEW, Last Updated: <a href="REDACTED-FOR-PEER-REVIEW">2022-Sep-14</a></p>
+      <p>Copyright 2022 Abhishek Dutta, Last Updated: <a href="CHANGELOG.txt">2022-Oct-01</a></p>
     </footer>
   </body>
 </html>
