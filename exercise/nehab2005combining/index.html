@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Software Resurrection of Nehab et al. (2005)</title>
+    <meta name="author" content="Abhishek Dutta">
+    <meta name="description" content="Software resurrection">
+    <meta name="viewport" content="width=device-width,
+                                   initial-scale=1, user-scalable=1">
+    <link rel="stylesheet" type="text/css" href="../../sr.css">
+  </head>
+
+  <body>
+    <h1>Software Resurrection of Nehab et al. (2005)</h1>
+    <address>by <a rel="author"
+                   href="https://abhishekdutta.org">Abhishek Dutta</a>
+    </address>
+
+    <section id="toc">
+      <ol>
+        <li><a href="#nehab2005combining:Section:Introduction">Introduction</a></li>
+        <li><a href="#nehab2005combining:Section:Compile">Compile</a></li>
+        <li><a href="#nehab2005combining:Section:Test">Test</a></li>
+        <li><a href="#nehab2005combining:Section:Critique">Critique</a></li>
+      </ol>
+    </section>
+
+    <section id="nehab2005combining:Section:Introduction">
+      <h2>1. Introduction</h2>
+      <p>This tutorial reports the software resurrection exercise
+        on the <a href="https://w3.impa.br/~diego/software/NehEtAl05/">software code</a> released as a part of the
+        following research paper in Computer Graphics.</p>
+      <p>Nehab et al. "<i>Efficiently combining positions and normals for precise 3D
+          geometry</i>." ACM Transactions on Graphics (2005) [<a href="https://doi.org/10.1145/1073204.1073226">doi</a>].</p>
+
+      <p>Nehab et al. (2005) describe a method to combine information
+        from two different sources in order to recover a more detailed
+        geometry (i.e. 3D shape) of an object. A stereo triangulation
+        method can capture 3D geometry of an object and represent it
+        using triangular meshes. A photometric stereo method can
+        capture the surface normal at each point represented by a
+        pixel in an image. These two methods capture different types
+        of detail about the 3D geometry of an object. The stereo
+        triangulation method captures overall shape of an object but
+        is unable to accurately capture fine details (i.e. high
+        frequency details). The photometric stereo method can capture
+        fine details about the geometry but is unable to capture depth
+        information accurately. The insight of Nehab et al. (2005) was
+        to combine these two sources of information in order to
+        recover a more detailed and accurate 3D geometry of an object
+        that contains finer
+        details. The <a href="https://doi.org/10.1145/1073204.1073226">research
+          paper</a> provides a more accurate and detailed description of
+        the method.</p>
+
+      <p>I read this paper during
+        my <a href="https://abhishekdutta.org/msc.html">MSc</a> and
+        wondered how do people come up with such wonderful ideas. What
+        amazed me was that Nehab et al. (2005) went a step further by
+        releasing the program code, documentation and sample data
+        required to reproduce the results reported in their research
+        paper. As a research student, these assets allowed me to
+        explore the proposed method in more detail and develop an
+        understanding of their method in a way that I can never
+        forget. This was in the year 2009-2010 at the University of
+        York (UK). In 2022, I was invited to give a talk at the
+        Vision, Graphics and Learning (VGL) group at the Department of
+        Computer Science in the University of York. To demonstrate the
+        concept of software resurrection, I chose the program code
+        released with Nehab et al. (2005) because the audience will be
+        able to connect with this software.</p>
+
+      <p>The software resurrection exercise for Nehab et al. (2005) is
+        described below. We use the following hardware and software
+        environment for software resurrection exercise of
+        sqlite-2002.</p>
+
+      <ul>
+        <li>
+          <strong>Hardware</strong>: A laptop purchased in 2019 with
+          the following specifications.
+          <table>
+            <tbody>
+              <tr><td>Model</td><td>Intel(R) Core(TM) i9-9980HK CPU @
+                  2.40GHz</td></tr>
+              <tr><td>Architecture</td><td>x86_64</td></tr>
+              <tr><td>Byte Order</td><td>Little Endian</td></tr>
+              <tr><td>Address sizes</td><td>39 bits physical, 48 bits virtual</td></tr>
+              <tr><td>CPU(s)</td><td>16 (Family: 6, Model: 158, cpu MHz: 800.072)</td></tr>
+              <tr><td>Threads per code</td><td>2</td></tr>
+              <tr><td>Core per socket</td><td>8</td></tr>
+              <tr><td>Socket</td><td>1</td></tr>
+              <tr><td>Memory</td><td>Cache: 16 MB, RAM: 32 GB</td></tr>
+            </tbody>
+          </table>
+        </li>
+        <li>
+          <strong>Software</strong>
+          <table>
+            <tbody>
+              <tr><td>Operating System</td><td>Debian GNU/Linux 11.3 (bullseye) released on March 26th 2022</td></tr>
+              <tr><td>Compiler</td><td>gcc-10.2.1 (Debian 10.2.1-6) 20210110</td></tr>
+            </tbody>
+          </table>
+        </li>
+      </ul>
+    </section>
+
+    <section id="nehab2005combining:Section:Compile">
+      <h2>2. Compile</h2>
+      <p>The <a href="https://w3.impa.br/~diego/software/NehEtAl05/mesh_opt.tar.gz">source
+          code</a> is downloaded and extracted. A readme.txt file is
+        missing but the <code>cc</code> file extension suggests that
+        this is a C++ source code. The <code>mesh_opt.cc</code> source
+        file is compiled using the <code>g++</code> compiler which
+        reveals the first compilation error.</p>
+      <pre class="cmd">
+## Prepare environment
+export ROOT=$HOME/sr/nehab2005combining
+mkdir -p $ROOT && cd $ROOT
+
+## Download source
+wget https://w3.impa.br/~diego/software/NehEtAl05/mesh_opt.tar.gz
+tar -zxvf mesh_opt.tar.gz
+g++ -o mesh_opt mesh_opt.cc
+<span class="err">mesh_opt.cc:15:10: fatal error: cholmod.h: No such file or directory</span>
+<span class="output">   15 | #include "cholmod.h"
+      |          ^~~~~~~~~~~
+compilation terminated.</span>
+      </pre>
+
+      <p>The Debian package manager informs that
+        the <code>cholmod</code> library is already installed. This
+        implies that the <code>g++</code> compiler was unable to locate
+        the installed <code>cholmod</code> library. The location
+        of <code>cholmod</code> library is manually found and the
+        compiler is instructed to locate the missing library from this
+        custom location. As the <code>cholmod</code> library get
+        successfully located, another dependency library
+        (i.e. <a href="https://gfx.cs.princeton.edu/proj/trimesh2/">trimesh</a>
+        library) goes missing.</p>
+
+      <pre class="cmd">
+sudo apt install libcholmod3
+<span class="output">libcholmod3 is already the newest version</span>
+
+cd /usr/include
+find . -iname 'cholmod.h'
+./suitesparse/cholmod.h
+
+g++ -o mesh_opt -I/usr/include/suitesparse/ mesh_opt.cc
+<span class="err">mesh_opt.cc:16:10: fatal error: TriMesh.h: No such file or directory</span>
+<span class="output">   16 | #include "TriMesh.h"
+      |          ^~~~~~~~~~~
+compilation terminated.</span>
+    </pre>
+
+      <p>The missing trimesh library is downloaded and as its
+      successful compilation required installation of another library
+      OpenGL Utility Toolkit (freeglut). The freeglut library was
+        installed using the Debian package manager.</p>
+      <pre class="output">
+<span class="cmd">
+wget https://gfx.cs.princeton.edu/proj/trimesh2/src/trimesh2-2.16.zip
+unzip trimesh2-2.16.zip
+cd trimesh2/
+make</span>
+<span class="err">../include/GL/freeglut_std.h:131:13: fatal error: GL/glu.h: No such file or directory</span>
+  131 | #   include <GL/glu.h>
+      |             ^~~~~~~~~~
+compilation terminated.
+
+<span class="cmd">sudo apt install freeglut3-dev
+make</span>
+<span class="output">...
+Compiling mesh_view.cc
+Linking ../bin.Linux64/mesh_view</span>
+      </pre>
+      <p>The <code>mesh_opt.cc</code> source is recompiled after
+        installing all the required dependencies. The compilation
+        process breaks with the following error.</p>
+      <pre class="output">
+<span class="cmd">g++ -o mesh_opt \
+  -I/usr/include/suitesparse/ -I./trimesh2/include \
+  mesh_opt.cc</span>
+
+<span class="err">mesh_opt.cc:93:23: error: ‘TriMesh’ was not declared in this scope; did you mean ‘trimesh::TriMesh’?</span>
+   93 | static int isneighbor(TriMesh *mesh, int i, int j) {
+      |                       ^~~~~~~
+      |                       trimesh::TriMesh
+      </pre>
+
+      <details class="issue">
+        <summary>Issue 2.1: The trimesh library interface has changed address.</summary>
+        <p>The <a href="https://gfx.cs.princeton.edu/proj/trimesh2/">CHANGELOG</a>
+          of trimesh2 library notifies of this breaking change as
+          follows.</p>
+        <pre class="output">
+Changes version 2.11 → 2.12:
+
+Major user-visible change: the library and headers are now contained
+within the trimesh namespace. Existing code must be updated to refer
+to the TriMesh class and associated functions with an explicit
+namespace qualifier, or include the following declaration
+
+using namespace trimesh;
+          </pre>
+        <p>This breaking change in the trimesh library can be
+          addressed by appending the following statement to
+          the <code>mesh_opt.cc</code> source code which instructs the
+          compiler to automatically use the <code>trimesh</code> name
+          for all references to the <code>Trimesh</code> data
+          structure.</p>
+        <pre class="output">
+using namespace trimesh;
+          </pre>
+      </details>
+
+      <p>Fixing Issue 2.1 reveals other two issues with
+        the <code>mesh_opt.cc</code> source. These issues are easier
+        to fix as they relate to compilers enforcing certain rules
+        more strictly as compared to tolerance offered by compilers 17
+        years ago.</p>
+      <pre class="output">
+<span class="cmd">g++ -o mesh_opt \
+  -I/usr/include/suitesparse/ -I./trimesh2/include \
+  mesh_opt.cc</span>
+mesh_opt.cc: In function ‘void optimize_grid(trimesh::TriMesh*, float, float, const t_fc&)’:
+<span class="err">mesh_opt.cc:178:23: error: invalid conversion from ‘void (*)(int, char*, int, char*)’ to ‘void (*)(int, const char*, int, const char*)’ [-fpermissive]</span>
+  178 |     c.error_handler = handler;
+      |                       ^~~~~~~
+      |                       |
+      |                       void (*)(int, char*, int, char*)
+mesh_opt.cc: In function ‘void optimize_mesh(trimesh::TriMesh*, float, float)’:
+<span class="err">mesh_opt.cc:348:23: error: invalid conversion from ‘void (*)(int, char*, int, char*)’ to ‘void (*)(int, const char*, int, const char*)’ [-fpermissive]</span>
+  348 |     c.error_handler = handler;
+      |                       ^~~~~~~
+      |                       |
+      |                       void (*)(int, char*, int, char*)
+<span class="err">mesh_opt.cc:366:15: error: ‘vector’ does not name a type</span>
+  366 |         const vector&lt;int&gt; &af = mesh-&gt;adjacentfaces[v];
+      |               ^~~~~~
+mesh_opt.cc:367:18: error: ‘af’ was not declared in this scope; did you mean ‘nf’?
+  367 |         int nf = af.size();
+      |                  ^~
+      |                  nf
+      </pre>
+
+      <details class="issue">
+        <summary>Issue 2.2: Compilers are more strict now than they
+          were 17 years ago.</summary>
+        <p>The first issue of <code>invalid conversion ...</code> is
+        resolved by adding the qualifier <code>const</code> to the
+        function arguments as required by the CHOLMOD library's error
+        handler. The second issue related to <code>vector</code> is
+        fixed by adding <code>std::</code> namespace to the
+        declaration of variable <code>af</code> of the STL
+        type <code>vector</code>.</p>
+        <h4>File: mesh_opt.cc</h4>
+        <pre class="code">
+...
+// CHOLMOD error handler
+//static void handler(int status, char *file, int line, char *message) {
+static void handler(int status, const char *file, int line, const char *message) {
+...
+    // Normal constraints
+    int row = nvars;
+    for (int v = 0; v < nvars; v++) {
+//        const vector<int> &af = mesh->adjacentfaces[v];
+        const std::vector<int> &af = mesh->adjacentfaces[v];
+...
+        </pre>
+      </details>
+
+      <p>The compilation process completes successfully but the
+        linking stage breaks with a large number of <code>undefined
+          reference to ...</code> errors. These errors are fixed by
+        manually pointing the compiling to static library that contains
+        the definition of those symbols. These library names were
+        manually found by hit-and-trial method. The following command
+        leads to successful compilation and linking of
+        the <code>mesh_opt.cc</code> source file resulting in the
+        required <code>mesh_opt</code> executable.</p>
+      <pre class="cmd">
+g++ -o mesh_opt \
+  -I/usr/include/suitesparse/ \
+  -I./trimesh2/include \
+  -fopenmp mesh_opt.cc \
+  ./trimesh2/lib.Linux64/libtrimesh.a \
+  /usr/lib/x86_64-linux-gnu/libcholmod.a \
+  /usr/lib/x86_64-linux-gnu/libblas.a \
+  /usr/lib/x86_64-linux-gnu/libsuitesparseconfig.a \
+  /usr/lib/x86_64-linux-gnu/libcolamd.a \
+  /usr/lib/x86_64-linux-gnu/libmetis.so.5 \
+  /usr/lib/x86_64-linux-gnu/libccolamd.a \
+  /usr/lib/x86_64-linux-gnu/libcamd.a \
+  /usr/lib/x86_64-linux-gnu/libamd.a
+
+./mesh_opt
+<span class="output">
+Usage: ./mesh_opt infile [options] [outfile]
+Options:
+   -fc file.fc     Range grid camera intrinsics (i.e. fx fy cx cy)
+   -lambda         Geometry weight
+   -blambda        Boundary geometry weight
+   -fixnorm s[:n]  Fix normals by smoothing n times with sigma=s*edgelength
+   -smooth s[:n]   Smooth positions n times with sigma=s*edgelength
+   -opt            Run one optimization round
+   -noopt          Do not optimize
+   -noconf         Remove per-vertex confidence
+   -nogrid         Unpack range grid to faces
+</span>
+      </pre>
+    </section>
+
+    <section id="nehab2005combining:Section:Test">
+      <h2>3. Test</h2>
+      <p>Nehab et al. (2005) have not included a self-contained
+      and automated test to verify the functionality of
+      the <code>mesh_opt</code> executable program. This would have
+      allowed us to verify that the program is operating as was
+      expected by the developers during its release in the year
+        2005.</p>
+      <p>The authors have included detailed <a href="https://w3.impa.br/~diego/software/NehEtAl05/reference.html">documentation</a> about
+      the <code>mesh_opt</code> program as well as provided data
+      <a href="https://w3.impa.br/~diego/software/NehEtAl05/samples.tar.gz">samples</a>
+      and <a href="https://w3.impa.br/~diego/software/NehEtAl05/examples.html">examples</a>
+      (along with the expected output) to guide users in reproducing
+      the results presented in the research paper. To reproduce the visualisation included in the paper, the
+      <a href="https://w3.impa.br/~diego/software/NehEtAl05/samples.tar.gz">samples</a>
+      are downloaded and the <code>mesh_opt</code> program is executed
+      using exactly the same command line arguments provided in
+      the <a href="https://w3.impa.br/~diego/software/NehEtAl05/examples.html">examples</a>.</p>
+      <pre class="output">
+<span class="cmd">wget https://w3.impa.br/~diego/software/NehEtAl05/samples.tar.gz
+tar -zxvf samples.tar.gz
+./mesh_opt panel/panel-small.ply -fc panel/panel-small.fc -fixnorm 2:3 optimized.ply</span>
+Reading panel/panel-small.ply...
+  Reading 116408 vertices...
+  Reading range grid... Done.
+Fixing normals (2:3)...
+Triangulating... 230778 faces.
+Removing faces... 479 faces removed... Done.
+  Computing point areas... Done.
+Finding vertex neighbors... Done.
+Smoothing normals... Done.  Filtering took 0.062695 sec.
+Smoothing normals... Done.  Filtering took 0.055074 sec.
+Smoothing normals... Done.  Filtering took 0.051286 sec.
+Computing normals... Done.
+Smoothing normals... Done.  Filtering took 0.053773 sec.
+Smoothing normals... Done.  Filtering took 0.054504 sec.
+Smoothing normals... Done.  Filtering took 0.052540 sec.
+Done.
+Range grid optimization...
+  Analyzing range grid... Done.
+  Building system (116408x349115)... Done.
+  Analyzing matrix... Done.
+  Factoring matrix... Done.
+  Back substituting... Done.
+  Updating range grid... Done.
+Writing optimized.ply... Done.
+      </pre>
+
+      <figure>
+        <img title="Expected output"
+             src="img/panel-small-expected-output.png">
+        <figcaption><a href="https://w3.impa.br/~diego/software/NehEtAl05/examples.html">Expected
+            output</a> from running the <code>mesh_opt</code> on the
+          provided sample data.</figcaption>
+      </figure>
+
+      <p>Apart from the execution time differences, the following
+        differences exists between the obtained output and expected
+        output of the <code>mesh_opt</code> command. The author's output
+        shows "Removing faces... 480 faces removed" while our output
+        shows "Removing faces... 479 faces removed". This suggests that
+        the <code>mesh_opt</code> program is behaving in slightly
+        different ways than what was observed by the authors in
+        2005. The generated output mesh looks visually similar as shown
+        below. However, it is not possible to confirm this as the
+        processed results (i.e. <code>optimized.ply</code>) are not
+        included in the provided dataset.</p>
+
+      <figure>
+        <img title="Observed and expected renderings of a 3D object"
+             src="img/panel-small-observed-expected-output.jpg">
+        <figcaption>Visualisation of our optimised mesh (left) and the
+          visualisation included in
+          the <a href="https://w3.impa.br/~diego/software/NehEtAl05/examples.html">examples</a>. The
+          brightness difference is caused by light source used for
+          visualisation and is not important here.</figcaption>
+      </figure>
+
+    </section>
+
+    <section id="nehab2005combining:Section:Critique">
+      <h2>4. Critique</h2>
+      <p>The compilation and testing (i.e. manual comparison of
+        output) of code released by Nehab et al. (2005) provided some
+        valuable insights into the factors that contribute to the
+        intelligibility and maintainability of a research software.</p>
+
+      <h3>4.1 To Depend or Not to Depend is a profound question that the
+        wise can answer.</h3>
+      <p>The C++ code of Nehab et al. (2005) depends on the following
+        two libraries:
+        (a) <a href="http://www.cs.princeton.edu/gfx/proj/trimesh2/">trimesh2</a>
+        and
+        (b) <a href="http://www.cise.ufl.edu/research/sparse/cholmod/">CHOLMOD</a>.</p>
+
+      <p>The <code>trimesh2</code> library is still being maintained (last release
+        was in 2020) and therefore its compilation is straightforward after
+        its dependency (i.e. freeglut library) was installed using the
+        operating system's package manager. The <code>trimesh2</code> library
+        introduced a breaking change in 2013 (i.e. in release version
+        2-2.12) which moved all the library assets to
+        the <code>trimesh</code> namespace in order to avoid naming
+        conflicts with other libraries or user code. This breaking
+        change required a minor update to the source code of Nehab et
+        al. (2005).</p>
+
+      <p>The original CHOLMOD library has now been integrated with
+        other linear algebra libraries in
+        the <a href="https://people.engr.tamu.edu/davis/suitesparse.html">SuiteSparse</a>
+        and therefore resolving this dependency required some
+        significant effort.</p>
+
+      <p>I first tried to compile this code in 2009 during my MSc and
+        I don't recall facing any major issues during the
+        compilation. My colleague, who was doing his PhD during that
+        time, also had compiled this code successfully in his machine
+        and used it for his doctoral research. So, I know that this
+        research code compiled without much friction in 2009. However,
+        when I re-compiled this research code in 2022, I faced many
+        issues. Most of these issues were related to the changes in
+        dependency libraries. These issues have also been faced by
+        others. The <a href="https://github.com/waps101/MergePositionNormals">waps101/MergePositionNormals</a>
+        project created a MATLAB implementation of the research code
+        from Nehab et al. because the original C-language based
+        implementation had become "<i>more difficult to compile over the
+        years due to required dependencies</i>".</p>
+
+      <p>I do not know if there was a way, in 2005, to ship a research
+        code like Nehab et al. (2005) that could have prevented dependency
+        issues after 17 years. I will revisit this question in future
+        when I gain a better understanding of the state of software
+        packaging and distribution in the year 2005.</p>
+
+      <h3>4.2 Don't rely on compilers to always be nice to you.</h3>
+      <p>Compiler tolerate certain programming practices for various
+        reasons. For example, the following statement exists in the
+        source code of Nehab et al. (2005).</p>
+      <h4>File: mesh_opt.cc</h4>
+      <pre class="code">
+...
+const std::vector<int> &g = mesh->grid;
+...
+const vector<int> &af = mesh->adjacentfaces[v];
+...
+      </pre>
+      <p>The existence of the statement <code>const
+          vector&lt;int&gt; ...</code> indicates that the authors must have
+        missed to include the <code>std::</code> namespace prefix
+        because other similar declarations does include the required
+        prefix <code>std::vector</code>. This code must have compiled
+        successfully in 2005; possibly with a compiler warning
+        message. In the year 2022, compilers generate an error, instead
+        of a warning, thereby requiring an update to the source
+        code.</p>
+      <p>Compiler warnings will turn into error. Therefore, it is
+        wise to heed to those warnings and update the code to address
+        the issue in order to avoid breaking the code in the future.</p>
+
+      <h3>4.3 Tests build trust.</h3>
+      <p>While we were able to run the executable in a modern
+      machine, it was not possible to verify if the software was
+      operating in the way expected by the authors in 2005. We also
+      noticed a minor difference in the observed output and expected
+        output (as documented in the reference manual).</p>
+      <pre class="output">
+## 2022 (output obtained using modern hardware and software libraries)
+...
+Removing faces... 479 faces removed... Done.
+...
+
+## 2005
+...
+Removing faces... 480 faces removed... Done.
+...
+</pre>
+
+      <p>This discrepancy in the output makes one wonder if there is
+        something amiss in the software code or the dependency
+        library. This situation could have been avoided, to some extent,
+        by including a set of self-contained and automated tests which
+        would have helped the user to narrow down the issue. This
+        discrepany has revealed the contribution of a software test
+        suite in building trust with its users.</p>
+
+      <h3>4.4 Code will run faster in future machines.</h3>
+      <p>Reproducing the results reported by Nehab et al. (2005)
+      revealed that the code ran 45 times faster in a modern hardware
+        and software platform.</p>
+      <pre class="output">
+## 2022 (output obtained using a modern hardware and software libraries)
+...
+Smoothing normals... Done.  Filtering took 0.062695 sec.
+...
+
+## 2005
+...
+Smoothing normals... Done.  Filtering took 2.496497 sec.
+...
+      </pre>
+
+      <p>This observation suggests that code execution will be faster
+        in future platforms just because of improvements in hardware and
+        software libraries. It also encourages developers to resist the
+        temptation to optimise their code in order to save a few CPU
+        cycles during execution. Such optimised code are often difficult
+        to understand, maintain and fix. Therefore, it is wiser to write
+        code that are easier to understand and runs at acceptable speed
+        as compared to highly optimised code that runs faster but is
+        difficult to understand and maintain.</p>
+
+      <h3>4.5 Code and Documentation Should be Co-located.</h3>
+      <p>The downloaded archive file contains a C++ source code, an
+        executable file and some sample data. I missed a readme.txt file
+        in the archive which usually provides details about compiling
+        the source code, running the executable, expected output,
+        description of the provided sample data, etc. After some
+        exploration,
+        the <a href="https://w3.impa.br/~diego/software/NehEtAl05/reference.html">reference
+          manual</a> page and <a href="https://w3.impa.br/~diego/software/NehEtAl05/examples.html">examples page</a> were
+        discovered online. These pages are well written and proved
+        extremely useful in understanding the process of reproducing
+        the results reported in the paper. It would have been easier to
+        locate if these HTML documents were included inside
+        a <code>doc</code> folder of the downloaded archive file. In
+        retrospect, the main website of Nehab et al. (2005) clearly
+        shows a documentation section containing links to the
+        reference manual and examples. For some reason, I downloaded
+        the source and started to look inside the archive for the
+        required documentation.</p>
+
+      <h3>4.6 Code and documentation of Nehab et al. (2005) is
+        intelligible and maintainable.</h3>
+      <p>The code and documentation of Nehab et al. (2005) was easy
+      to understand, interesting to read and easy to fix. It was
+      remarkable to see a code written 17 years ago becoming alive and
+      running 45 times faster in a modern hardware and software
+      platform. The reference manual and examples page are clear and
+      easy to understand. The source code is well documentation and
+        intelligible.</p>
+    </section>
+
+    <footer>
+      <p>Copyright 2022 Abhishek Dutta</p>
+    </footer>
+  </body>
+</html>
