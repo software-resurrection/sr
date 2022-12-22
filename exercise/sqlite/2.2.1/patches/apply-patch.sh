@@ -62,8 +62,8 @@ if [[ $GIT_REV_COUNT -eq 1 ]]; then
     git commit -a -m "defined variable as extern in to resolve multiple definition error"
 
     ## Patch 4: pointer address is 64 bit not 32 bit
-    #git apply $PATCHDIR/4-pointer-address-64bit-not-32bit.patch
-    #git commit -a -m "used %p format specifier instead of %x to obtain 64 bit pointer address (researched by Abhishek Dutta)"
+    git apply $PATCHDIR/4-pointer-address-64bit-not-32bit.patch
+    git commit -a -m "used %p format specifier instead of %x to obtain 64 bit pointer address (researched by Abhishek Dutta)"
 fi
 
 ##
