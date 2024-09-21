@@ -1,0 +1,26 @@
+From 8a8d00a3fb9be50ffb442b0c8391fc5d4431166e Mon Sep 17 00:00:00 2001
+From: Abhishek Dutta <thelinuxmaniac@gmail.com>
+Date: Sat, 21 Sep 2024 07:28:11 +0100
+Subject: [PATCH 4/5] remove PyOS_ascii_strtod() which has been deprecated by
+ Python-2.7 and use PyOS_string_to_double() instead
+
+---
+ numpy/core/src/arraytypes.inc.src | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/numpy/core/src/arraytypes.inc.src b/numpy/core/src/arraytypes.inc.src
+index 7272fa5..2cc69d8 100644
+--- a/numpy/core/src/arraytypes.inc.src
++++ b/numpy/core/src/arraytypes.inc.src
+@@ -941,7 +941,7 @@ static int
+ {
+     double result;
+ 
+-    result = PyOS_ascii_strtod(str, endptr);
++    result = PyOS_string_to_double(str, endptr, NULL);
+     *ip = (@type@) result;
+     return 0;
+ }
+-- 
+2.39.2
+

@@ -1,0 +1,25 @@
+From 2af2e447e2435a963b55b30d4a988930b2694cef Mon Sep 17 00:00:00 2001
+From: Abhishek Dutta <thelinuxmaniac@gmail.com>
+Date: Wed, 18 Sep 2024 11:10:08 +0100
+Subject: [PATCH 2/5] fix for NameError: global name 'DistutilsExecError' is
+ not defined
+
+---
+ numpy/distutils/ccompiler.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/numpy/distutils/ccompiler.py b/numpy/distutils/ccompiler.py
+index 8f828e7..f207d83 100644
+--- a/numpy/distutils/ccompiler.py
++++ b/numpy/distutils/ccompiler.py
+@@ -4,6 +4,7 @@ import sys
+ import new
+ import copy
+ 
++from distutils.errors import *
+ from distutils.ccompiler import *
+ from distutils import ccompiler
+ from distutils.sysconfig import customize_compiler
+-- 
+2.39.2
+

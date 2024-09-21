@@ -1,0 +1,33 @@
+From c895d84cbcf7bd80f19675585f2a25f44846bb33 Mon Sep 17 00:00:00 2001
+From: Abhishek Dutta <thelinuxmaniac@gmail.com>
+Date: Wed, 18 Sep 2024 11:05:50 +0100
+Subject: [PATCH 1/5] fix for NameError: global name 'copy' is not defined
+
+---
+ numpy/distutils/ccompiler.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/numpy/distutils/ccompiler.py b/numpy/distutils/ccompiler.py
+index f05ac59..8f828e7 100644
+--- a/numpy/distutils/ccompiler.py
++++ b/numpy/distutils/ccompiler.py
+@@ -2,6 +2,7 @@ import re
+ import os
+ import sys
+ import new
++import copy
+ 
+ from distutils.ccompiler import *
+ from distutils import ccompiler
+@@ -295,7 +296,7 @@ replace_method(CCompiler, 'get_version', CCompiler_get_version)
+ 
+ def CCompiler_cxx_compiler(self):
+     if self.compiler_type=='msvc': return self
+-    cxx = copy(self)
++    cxx = copy.copy(self)
+     cxx.compiler_so = [cxx.compiler_cxx[0]] + cxx.compiler_so[1:]
+     if sys.platform.startswith('aix') and 'ld_so_aix' in cxx.linker_so[0]:
+         # AIX needs the ld_so_aix script included with Python
+-- 
+2.39.2
+

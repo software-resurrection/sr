@@ -1,0 +1,26 @@
+From 995741cd19163787979515085caaeb3dbd896648 Mon Sep 17 00:00:00 2001
+From: Abhishek Dutta <thelinuxmaniac@gmail.com>
+Date: Sat, 21 Sep 2024 07:29:23 +0100
+Subject: [PATCH 5/5] fix logical error which failed to add space after
+ separator character
+
+---
+ numpy/core/src/multiarraymodule.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/numpy/core/src/multiarraymodule.c b/numpy/core/src/multiarraymodule.c
+index 7078a63..f4fba42 100644
+--- a/numpy/core/src/multiarraymodule.c
++++ b/numpy/core/src/multiarraymodule.c
+@@ -6023,7 +6023,7 @@ swab_separator(char *sep)
+         }
+     }
+     /* add space to end if there isn't one */
+-    if (s != start && s[-1] == ' ') {
++    if (s != start && s[-1] != ' ') {
+         *s = ' ';
+         s++;
+     }
+-- 
+2.39.2
+
